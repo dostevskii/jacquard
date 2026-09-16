@@ -297,12 +297,12 @@ export function tilePixelSize(scene: Scene, scale: number): { w: number; h: numb
 |---|---|---|---|---|
 | cell | range | 4..32 | 10 | 격자 칸(unit) |
 | size | range | 7..31 step 2 | 15 | 모티프 한 변(cell, 홀수) |
-| density | range | 0.1..0.6 step 0.05 | 0.3 | 사분면 셀이 채워질 확률 |
+| density | range | 0.1..0.6 step 0.05 | 0.25 | 사분면 셀이 채워질 확률 |
 | symmetry | select | quad / oct | quad | 4방 또는 8방(대각선 포함) 거울 대칭 |
-| smooth | range | 0..2 | 1 | 이웃 4칸 중 2칸 이상이 채워진 빈 칸을 채우는 패스 횟수 |
+| smooth | range | 0..2 | 1 | 이웃 4칸 중 3칸 이상이 채워진 빈 칸을 채우는 패스 횟수(구멍·오목부만 메움) |
 | spacing | range | 0..6 | 2 | 모티프 사이 간격(cell) |
 | bandRows | range | 0..4 | 2 | 모티프 행 사이 줄무늬 띠 높이(cell). 0이면 없음 |
-| stagger | toggle | | false | 홀수 행 모티프를 반 칸 이동(타일에 모티프 2행 포함) |
+| stagger | toggle | | false | 홀수 행 모티프를 floor((size + spacing) / 2) 셀만큼 이동(격자 정렬 유지, 타일에 모티프 2행 포함) |
 
 색: 모티프 `palette[1]`, 띠는 `palette[2]`/`palette[3]` 1 cell 체커 교대(부족하면 순환). 타일 폭 = (size + spacing) × cell, 높이 = (size + spacing + bandRows) × cell × (stagger ? 2 : 1). stagger가 켜지면 둘째 모티프 행이 좌우 경계를 넘으므로 `tileWrap`으로 자른다. minColors 3.
 
