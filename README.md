@@ -25,10 +25,13 @@ canvas — 1080 × 1080, A3 at 300 dpi, or your own size up to 8192 px — as PN
 
 Everything is reproducible. A generator is a pure function of its parameters, the palette and a
 seeded PRNG, so the same seed always gives the same tile; the seed sits in the top bar with a dice
-button next to it. The complete state — generator, seed, every parameter and every colour — is
-base64url JSON in the URL hash, so **Copy link** hands someone else the exact pattern you are
-looking at. And because the generator only ever emits a small intermediate scene of rectangles,
-polygons and linear gradients, the tile you see on screen is the tile that gets exported.
+button next to it. **Randomize**, beside the seed, rerolls the seed, every parameter and every
+colour in one press — except what is locked: anything you set by hand locks itself, and a lock icon
+on every control and every swatch lets you pin the rest. The complete state — generator, seed,
+every parameter, every colour and every lock — is base64url JSON in the URL hash, so **Copy link**
+hands someone else the exact pattern you are looking at. And because the generator only ever emits
+a small intermediate scene of rectangles, polygons and linear gradients, the tile you see on screen
+is the tile that gets exported.
 
 ## Screenshots
 
@@ -51,6 +54,10 @@ polygons and linear gradients, the tile you see on screen is the tile that gets 
 | Palette editor — wheel, brightness, HEX/RGB/HSL/HSB | Export dialog — canvas mode |
 | --- | --- |
 | ![Palette panel with the colour wheel and numeric inputs](docs/screenshots/palette-editor.png) | ![Export dialog in canvas mode at 1080 × 1080](docs/screenshots/export-dialog.png) |
+
+| Locks and Randomize — two locked parameters, a locked seed | Palette locks — a badge on every locked swatch | Dark theme — the 3 × 3 view |
+| --- | --- | --- |
+| ![Top bar with Randomize, a locked seed and two locked parameters](docs/screenshots/locks-topbar.png) | ![Palette with lock badges on four of six swatches](docs/screenshots/palette-locks.png) | ![The same app in the dark theme](docs/screenshots/theme-dark.png) |
 
 ## Features
 
@@ -78,8 +85,15 @@ polygons and linear gradients, the tile you see on screen is the tile that gets 
   on the colour wheel (angle = hue, distance from centre = saturation), the brightness slider, or
   the HEX / RGB / HSL / HSB fields — all four stay in sync, and hue survives a trip through grey
 - **Eight preset palettes** — Missoni Blue, Walala, Underground, Boogie, Poppy Field, Bauhaus,
-  Neon Op, Candy Weave. **Shuffle** builds a new one instead: hues spaced by the golden angle
-  (137.5°), saturation 55–85, value 35–90, and a background that is either very light or very dark
+  Neon Op, Candy Weave. **Randomize colors** builds a new one instead: hues spaced by the golden
+  angle (137.5°), saturation 55–85, value 35–90, and a background that is either very light or
+  very dark
+- **Randomize with locks** — **Randomize** in the top bar changes the seed, every parameter and
+  every unlocked colour in one press, and never changes the generator. Anything you touched is
+  locked automatically; a lock icon sits on every control and a lock badge on every swatch, so you
+  can pin or release anything by hand; and a dice button next to each value rerolls just that one
+- **Light and dark themes** — light by default, with a sun / moon button in the top bar. The choice
+  is remembered in this browser under `jacquard-theme`; the OS setting is not consulted
 - **Three preview modes** — Fill repeats the tile across the whole canvas; Tile shows exactly one;
   3 × 3 shows nine with dashed boundary lines so you can check the seams. Scale runs 0.25× to 4×,
   and the panel reports the tile in units, in pixels at the current scale, and its shape count
@@ -91,8 +105,9 @@ polygons and linear gradients, the tile you see on screen is the tile that gets 
   stays within 8192 px. Files come out as `jacquard-<generator>-<seed>.png` / `.jpg`
 - **URL sharing** — the whole state is base64url JSON in the location hash, rewritten 300 ms after
   your last change. **Copy link** puts the current URL on the clipboard; opening it restores the
-  generator, seed, parameters and palette. A link with stale or hand-edited values still loads —
-  unknown parameters are dropped, numbers are snapped and clamped, bad colours fall back
+  generator, seed, parameters, palette and locks. A link with stale or hand-edited values still
+  loads — unknown parameters are dropped, numbers are snapped and clamped, bad colours fall back,
+  locks on keys the generator does not have or on swatches that do not exist are discarded
 
 ## Controls
 
@@ -102,7 +117,10 @@ The left panel is the instrument; the preview to the right is the result.
 | --- | --- |
 | Generator dropdown (top bar) | Switches generator. Parameters reset to that generator's defaults and the palette is kept, padded if the new generator needs more colours |
 | Seed field, `Enter` or blur | Sets the seed (integer, 0 … 4294967295). Out-of-range or non-numeric input is ignored |
-| 🎲 | Fresh random seed |
+| Randomize (top bar) | Rerolls the seed, every parameter and every colour that is not locked. The generator, the locks themselves and the palette length never change |
+| Dice next to a value / swatch | Randomizes only that value — one parameter, the seed, or the selected swatch. It never locks anything, and it works on a locked item too |
+| Lock icon / swatch badge | Locks or unlocks that parameter, the seed or that swatch. A locked item keeps its value through **Randomize**, and you can still edit it by hand |
+| Sun / moon | Switches between the light and the dark theme |
 | Copy link | Copies the current URL to the clipboard; the button reads **Copied** for 1.2 s (or **Copy failed**) |
 | Export | Opens the export dialog |
 | Parameter sliders, number boxes, segmented buttons, checkboxes | Redraw the tile immediately |
@@ -110,10 +128,18 @@ The left panel is the instrument; the preview to the right is the result.
 | ◀ ▶ | Move the selected colour along the palette |
 | `+` / `−` | Add a colour (up to 8) / remove the selected one (down to the generator's minimum) |
 | Preset… | Applies one of the eight preset palettes |
-| Shuffle | Generates a new palette of the same length |
+| Randomize colors | New colours for every unlocked swatch, at the same palette length |
 | Colour wheel, Brightness, HEX / RGB / HSL / HSB | Edit the selected colour |
 | Fill / Tile / 3 × 3 | Preview mode |
 | Scale slider | 0.25× to 4×, in quarter steps |
+
+Locks follow what you do. Moving a slider, typing in a number box, pressing a segmented button or
+ticking a checkbox locks that parameter; typing a seed locks the seed; editing a colour on the
+wheel, the brightness slider or the HEX / RGB / HSL / HSB fields locks that swatch; applying a
+preset locks every swatch. The per-value dice buttons and **Randomize colors** never lock anything.
+**Randomize** leaves every locked item alone and never changes the generator. Switching generators
+clears the parameter locks and keeps the seed and swatch locks. Locks travel with the URL, so a
+shared link arrives with the same things pinned.
 
 ## How a tile is built
 
@@ -141,8 +167,9 @@ The left panel is the instrument; the preview to the right is the result.
 - [React 19](https://react.dev) + TypeScript 6 + [Vite 8](https://vite.dev)
 - Canvas 2D for rendering and for PNG / JPG encoding (`toBlob`, JPEG quality 0.92) — no image
   libraries, no server round-trip
-- [Vitest](https://vitest.dev) — 181 tests across 18 files, run in the Node environment because
-  the generators, the Scene geometry and the colour maths never touch the DOM
+- [Vitest](https://vitest.dev) — 212 tests across 21 files, run in the Node environment because
+  the generators, the Scene geometry, the lock and randomisation rules and the colour maths never
+  touch the DOM
 - [oxlint](https://oxc.rs)
 - Runtime dependencies: `react` and `react-dom`, and nothing else. The PRNG, the colour
   conversions and the colour wheel (two stacked CSS gradients) are all in this repo
@@ -161,7 +188,9 @@ src/
 │   ├── scene.ts         # Scene IR, tileWrap, polygon clipping
 │   ├── params.ts        # Parameter definitions, snapping and clamping
 │   ├── state.ts         # PatternState, base64url hash encode / decode
-│   └── palettes.ts      # Presets, palette padding, golden-angle random palette
+│   ├── palettes.ts      # Presets, palette padding, golden-angle random palette
+│   ├── locks.ts         # LockState and the pure helpers that move locks around
+│   └── random.ts        # Random value / palette / whole-state rules, locks respected
 ├── generators/          # One pure function per generator
 │   ├── index.ts         # Registry + generateScene()
 │   ├── types.ts         # GeneratorDef, GenContext
@@ -172,24 +201,27 @@ src/
 │   ├── canvas.ts        # renderTile, renderFill (createPattern)
 │   └── export.ts        # Size presets, 8192 px limit, encode, download
 └── ui/
-    ├── TopBar.tsx       # Generator, seed, copy link, Export
+    ├── TopBar.tsx       # Generator, seed + lock + dice, Randomize, theme, copy link, Export
     ├── ControlPanel.tsx # Parameters + output readout
-    ├── ParamControl.tsx # range / select / toggle widgets
-    ├── PalettePanel.tsx # Swatches, presets, shuffle
+    ├── ParamControl.tsx # range / select / toggle widgets, each with a dice and a lock
+    ├── PalettePanel.tsx # Swatches with lock badges, presets, Randomize colors
+    ├── LockButton.tsx DiceButton.tsx   # 16 px inline-SVG icon buttons
+    ├── theme.ts         # light / dark, stored under `jacquard-theme`
     ├── ColorEditor.tsx ColorWheel.tsx ColorInputs.tsx colorMath.ts
     ├── Preview.tsx      # Fill / Tile / 3 × 3, scale
     └── ExportDialog.tsx
 ```
 
-`App.tsx` owns the single `PatternState` (generator, seed, params, palette); the Scene is derived
-from it with `useMemo`, and the view mode and preview scale are the only other pieces of state.
+`App.tsx` owns the single `PatternState` (generator, seed, params, palette, locks); the Scene is
+derived from it with `useMemo`, and the view mode, the preview scale and the theme are the only
+other pieces of state.
 
 ## Getting started
 
 ```bash
 npm install
 npm run dev        # http://localhost:5173
-npm test           # Vitest — 181 tests, 18 files
+npm test           # Vitest — 212 tests, 21 files
 npm run lint       # oxlint
 npm run build      # production build → dist/
 ```
@@ -212,6 +244,9 @@ npm run deploy     # build, then wrangler pages deploy dist --project-name=jacqu
   breakpoint and no touch gestures
 - **A shared link is read once, at load.** Pasting a different hash into a tab that is already
   open does nothing until you reload — there is no `hashchange` listener
+- **The theme is remembered in the browser, not in the URL.** Light or dark is stored in
+  `localStorage`, so a shared link always opens in whatever theme that browser was last set to,
+  and your choice does not follow you to another browser or machine
 - **The Export dialog does not close with `Esc`.** Use Cancel, or click outside it
 - **Very large tiles degrade rather than render.** If a tile exceeds what the browser will
   allocate as a canvas the preview shows *"Preview unavailable — tile too large for this
@@ -236,10 +271,12 @@ PNG·JPG로 내려받습니다.
 
 모든 결과는 재현됩니다. 생성기는 매개변수·팔레트·시드 PRNG만 입력으로 받는 순수 함수라
 같은 시드는 언제나 같은 타일을 냅니다. 시드는 상단 바에 있고 옆의 주사위 버튼으로 바꿉니다.
-생성기, 시드, 모든 매개변수와 모든 색을 담은 상태 전체가 URL 해시에 base64url JSON으로
-들어가므로 **Copy link** 한 번이면 지금 보고 있는 패턴을 그대로 넘길 수 있습니다. 또한
-생성기는 사각형·다각형·선형 그라데이션만으로 이루어진 작은 중간 표현(Scene)만 내놓기
-때문에, 화면에서 본 타일이 그대로 내보내집니다.
+그 옆의 **Randomize**는 시드·모든 매개변수·모든 색을 한 번에 새로 뽑습니다. 단 잠긴 것은
+건드리지 않습니다. 직접 손댄 값은 자동으로 잠기고, 모든 컨트롤과 모든 스와치에 달린 자물쇠로
+나머지도 직접 잠글 수 있습니다. 생성기, 시드, 모든 매개변수, 모든 색, 모든 잠금을 담은 상태
+전체가 URL 해시에 base64url JSON으로 들어가므로 **Copy link** 한 번이면 지금 보고 있는 패턴을
+그대로 넘길 수 있습니다. 또한 생성기는 사각형·다각형·선형 그라데이션만으로 이루어진 작은
+중간 표현(Scene)만 내놓기 때문에, 화면에서 본 타일이 그대로 내보내집니다.
 
 ## 스크린샷
 
@@ -262,6 +299,10 @@ PNG·JPG로 내려받습니다.
 | 팔레트 편집기 — 색상환, 명도, HEX/RGB/HSL/HSB | 내보내기 대화상자 — 캔버스 모드 |
 | --- | --- |
 | ![색상환과 숫자 입력이 있는 팔레트 패널](docs/screenshots/palette-editor.png) | ![1080 × 1080 캔버스 모드의 내보내기 대화상자](docs/screenshots/export-dialog.png) |
+
+| 잠금과 Randomize — 매개변수 2개와 시드 잠금 | 팔레트 잠금 — 잠긴 스와치의 배지 | 다크 테마 — 3 × 3 뷰 |
+| --- | --- | --- |
+| ![Randomize 버튼과 잠긴 시드·매개변수가 보이는 상단 바](docs/screenshots/locks-topbar.png) | ![여섯 색 중 네 색에 잠금 배지가 붙은 팔레트](docs/screenshots/palette-locks.png) | ![다크 테마로 본 같은 화면](docs/screenshots/theme-dark.png) |
 
 ## 주요 기능
 
@@ -289,8 +330,14 @@ PNG·JPG로 내려받습니다.
   거리 = 채도), 명도 슬라이더, HEX / RGB / HSL / HSB 입력 중 아무거나 쓰면 되고, 네 입력은 서로
   동기화되며 회색을 거쳐도 색상(H)이 유지됩니다
 - **프리셋 팔레트 8종** — Missoni Blue, Walala, Underground, Boogie, Poppy Field, Bauhaus,
-  Neon Op, Candy Weave. **Shuffle**은 대신 새 팔레트를 만듭니다. 색상은 황금각(137.5°) 간격,
-  채도 55–85, 명도 35–90, 배경은 아주 밝거나 아주 어둡게
+  Neon Op, Candy Weave. **Randomize colors**는 대신 새 팔레트를 만듭니다. 색상은 황금각(137.5°)
+  간격, 채도 55–85, 명도 35–90, 배경은 아주 밝거나 아주 어둡게
+- **Randomize와 잠금** — 상단 바의 **Randomize**는 시드, 모든 매개변수, 잠기지 않은 모든 색을
+  한 번에 바꾸고 생성기는 절대 바꾸지 않습니다. 한 번이라도 손댄 값은 자동으로 잠기고, 모든
+  컨트롤에는 자물쇠 아이콘이, 모든 스와치에는 자물쇠 배지가 있어 직접 잠그고 풀 수 있으며,
+  값마다 붙은 주사위 버튼은 그 값 하나만 다시 뽑습니다
+- **라이트·다크 테마** — 기본은 라이트이고 상단 바의 해/달 버튼으로 바꿉니다. 선택은 이
+  브라우저의 `jacquard-theme`에 기억되며, OS 설정은 따르지 않습니다
 - **미리보기 3모드** — Fill은 캔버스 전체를 타일로 채우고, Tile은 한 장만, 3 × 3은 아홉 장을
   파선 경계와 함께 보여 줘 이음새를 확인할 수 있습니다. 배율은 0.25×–4×이고, 패널은 타일의
   unit 크기, 현재 배율의 px 크기, 도형 개수를 알려 줍니다
@@ -301,9 +348,10 @@ PNG·JPG로 내려받습니다.
   *Canvas* 모드에서 반복하는 타일의 배율은 타일 한 변이 8192px 안에 들어오도록 자동으로
   낮춥니다. 파일명은 `jacquard-<생성기>-<시드>.png` / `.jpg`입니다
 - **URL 공유** — 상태 전체가 URL 해시에 base64url JSON으로 들어가며, 마지막 변경 300ms 뒤에
-  갱신됩니다. **Copy link**로 현재 주소를 복사하고, 그 주소를 열면 생성기·시드·매개변수·팔레트가
+  갱신됩니다. **Copy link**로 현재 주소를 복사하고, 그 주소를 열면 생성기·시드·매개변수·팔레트·잠금이
   복원됩니다. 낡거나 손으로 고친 링크도 열립니다. 모르는 매개변수는 버리고, 숫자는 step에 맞춰
-  스냅·클램프하며, 잘못된 색은 기본값으로 되돌립니다
+  스냅·클램프하며, 잘못된 색은 기본값으로 되돌리고, 생성기에 없는 키나 존재하지 않는 스와치의
+  잠금은 버립니다
 
 ## 조작 방법
 
@@ -313,7 +361,10 @@ PNG·JPG로 내려받습니다.
 | --- | --- |
 | 생성기 드롭다운(상단 바) | 생성기 전환. 매개변수는 그 생성기의 기본값으로 돌아가고, 팔레트는 유지됩니다(색이 모자라면 채워 넣습니다) |
 | 시드 입력 후 `Enter` 또는 포커스 해제 | 시드 지정(정수 0 … 4294967295). 범위 밖이거나 숫자가 아니면 무시합니다 |
-| 🎲 | 새 무작위 시드 |
+| Randomize(상단 바) | 잠기지 않은 시드·매개변수·색을 전부 새로 뽑습니다. 생성기, 잠금 자체, 팔레트 길이는 바뀌지 않습니다 |
+| 값·스와치 옆 주사위 | 그 값 하나만 무작위로 바꿉니다(매개변수 하나, 시드, 또는 선택한 스와치). 잠금은 걸지 않고, 잠긴 항목에도 그대로 동작합니다 |
+| 자물쇠 아이콘 / 스와치 배지 | 그 매개변수·시드·스와치의 잠금을 켜고 끕니다. 잠긴 항목은 **Randomize**에도 값이 유지되며, 직접 고치는 것은 그대로 됩니다 |
+| 해 / 달 | 라이트 테마와 다크 테마를 전환합니다 |
 | Copy link | 현재 주소를 클립보드로 복사. 버튼이 1.2초 동안 **Copied**(실패 시 **Copy failed**)로 바뀝니다 |
 | Export | 내보내기 대화상자를 엽니다 |
 | 매개변수 슬라이더·숫자 입력·분절 버튼·체크박스 | 타일을 즉시 다시 그립니다 |
@@ -321,10 +372,18 @@ PNG·JPG로 내려받습니다.
 | ◀ ▶ | 선택한 색을 팔레트 안에서 이동 |
 | `+` / `−` | 색 추가(최대 8) / 선택한 색 삭제(생성기 최소 색 수까지) |
 | Preset… | 프리셋 팔레트 8종 중 하나를 적용 |
-| Shuffle | 같은 길이의 팔레트를 새로 생성 |
+| Randomize colors | 잠기지 않은 스와치를 전부 새 색으로. 팔레트 길이는 그대로 |
 | 색상환, Brightness, HEX / RGB / HSL / HSB | 선택한 색을 편집 |
 | Fill / Tile / 3 × 3 | 미리보기 모드 |
 | 배율 슬라이더 | 0.25×–4×, 0.25 단위 |
+
+잠금은 사용자의 조작을 따라갑니다. 슬라이더를 움직이거나 숫자 입력·분절 버튼·체크박스로 값을
+바꾸면 그 매개변수가 잠기고, 시드를 입력하면 시드가 잠기며, 색상환·명도 슬라이더·HEX / RGB /
+HSL / HSB로 색을 바꾸면 그 스와치가 잠기고, 프리셋을 적용하면 스와치 전체가 잠깁니다. 값마다
+붙은 주사위 버튼과 **Randomize colors**는 아무것도 잠그지 않습니다. **Randomize**는 잠긴 항목을
+건드리지 않고 생성기도 바꾸지 않습니다. 생성기를 바꾸면 매개변수 잠금은 초기화되고 시드·스와치
+잠금은 유지됩니다. 잠금은 URL에 함께 담기므로, 공유한 링크를 열면 같은 항목이 잠긴 채로
+나타납니다.
 
 ## 타일이 만들어지는 방식
 
@@ -351,8 +410,8 @@ PNG·JPG로 내려받습니다.
 - [React 19](https://react.dev) + TypeScript 6 + [Vite 8](https://vite.dev)
 - 렌더와 PNG / JPG 인코딩 모두 Canvas 2D (`toBlob`, JPEG 품질 0.92). 이미지 라이브러리도, 서버
   왕복도 없습니다
-- [Vitest](https://vitest.dev) — 18개 파일 181개 테스트. 생성기·Scene 기하·색 변환이 DOM과 무관해
-  Node 환경에서 그대로 돌립니다
+- [Vitest](https://vitest.dev) — 21개 파일 212개 테스트. 생성기·Scene 기하·잠금과 무작위 규칙·색
+  변환이 DOM과 무관해 Node 환경에서 그대로 돌립니다
 - [oxlint](https://oxc.rs)
 - 런타임 의존성은 `react`와 `react-dom` 둘뿐입니다. PRNG, 색 변환, 색상환(CSS 그라데이션 두 겹)은
   모두 이 저장소 안에 있습니다
@@ -371,7 +430,9 @@ src/
 │   ├── scene.ts         # Scene IR, tileWrap, 다각형 클리핑
 │   ├── params.ts        # 매개변수 정의, 스냅과 클램프
 │   ├── state.ts         # PatternState, base64url 해시 인코딩/디코딩
-│   └── palettes.ts      # 프리셋, 팔레트 채우기, 황금각 무작위 팔레트
+│   ├── palettes.ts      # 프리셋, 팔레트 채우기, 황금각 무작위 팔레트
+│   ├── locks.ts         # LockState와 잠금을 옮기는 순수 헬퍼
+│   └── random.ts        # 값·팔레트·상태 전체의 무작위 규칙(잠금 존중)
 ├── generators/          # 생성기 하나당 순수 함수 하나
 │   ├── index.ts         # 레지스트리 + generateScene()
 │   ├── types.ts         # GeneratorDef, GenContext
@@ -382,24 +443,26 @@ src/
 │   ├── canvas.ts        # renderTile, renderFill (createPattern)
 │   └── export.ts        # 크기 프리셋, 8192px 상한, 인코딩, 내려받기
 └── ui/
-    ├── TopBar.tsx       # 생성기, 시드, 링크 복사, Export
+    ├── TopBar.tsx       # 생성기, 시드 + 자물쇠 + 주사위, Randomize, 테마, 링크 복사, Export
     ├── ControlPanel.tsx # 매개변수 + 출력 정보
-    ├── ParamControl.tsx # range / select / toggle 위젯
-    ├── PalettePanel.tsx # 스와치, 프리셋, 셔플
+    ├── ParamControl.tsx # range / select / toggle 위젯, 각각 주사위와 자물쇠
+    ├── PalettePanel.tsx # 자물쇠 배지가 달린 스와치, 프리셋, Randomize colors
+    ├── LockButton.tsx DiceButton.tsx   # 16px 인라인 SVG 아이콘 버튼
+    ├── theme.ts         # 라이트 / 다크, `jacquard-theme`에 저장
     ├── ColorEditor.tsx ColorWheel.tsx ColorInputs.tsx colorMath.ts
     ├── Preview.tsx      # Fill / Tile / 3 × 3, 배율
     └── ExportDialog.tsx
 ```
 
-`App.tsx`가 `PatternState`(생성기, 시드, 매개변수, 팔레트) 하나를 소유하고 Scene은 거기서
-`useMemo`로 파생됩니다. 그 밖의 상태는 미리보기 모드와 배율뿐입니다.
+`App.tsx`가 `PatternState`(생성기, 시드, 매개변수, 팔레트, 잠금) 하나를 소유하고 Scene은 거기서
+`useMemo`로 파생됩니다. 그 밖의 상태는 미리보기 모드, 배율, 테마뿐입니다.
 
 ## 실행 / 배포
 
 ```bash
 npm install
 npm run dev        # http://localhost:5173
-npm test           # Vitest — 18개 파일 181개 테스트
+npm test           # Vitest — 21개 파일 212개 테스트
 npm run lint       # oxlint
 npm run build      # 프로덕션 빌드 → dist/
 npm run deploy     # 빌드 후 wrangler pages deploy dist --project-name=jacquard
@@ -416,6 +479,9 @@ npm run deploy     # 빌드 후 wrangler pages deploy dist --project-name=jacqua
   제스처가 없습니다
 - **공유 링크는 로드할 때 한 번만 읽습니다.** 이미 열려 있는 탭의 주소창에 다른 해시를 붙여
   넣어도 새로고침 전에는 아무 일도 일어나지 않습니다. `hashchange` 리스너가 없습니다
+- **테마는 URL에 저장되지 않고 브라우저에만 기억됩니다.** 라이트/다크는 `localStorage`에
+  들어가므로, 공유한 링크는 언제나 그 브라우저가 마지막으로 쓰던 테마로 열리고, 선택은 다른
+  브라우저나 다른 기기로 따라가지 않습니다
 - **내보내기 대화상자는 `Esc`로 닫히지 않습니다.** Cancel을 누르거나 바깥을 클릭하세요
 - **아주 큰 타일은 렌더 대신 안내로 대체됩니다.** 브라우저가 캔버스로 잡아 줄 수 있는 크기를
   넘으면 미리보기에 *"Preview unavailable — tile too large for this browser"* 가 뜨고,
