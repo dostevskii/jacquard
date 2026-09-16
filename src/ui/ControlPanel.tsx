@@ -8,19 +8,30 @@ import { ParamControl } from './ParamControl'
 interface Props {
   generator: GeneratorDef
   params: Params
+  lockedKeys: string[]
   onParamChange(key: string, value: ParamValue): void
+  onToggleLock(key: string): void
+  onRandomizeParam(key: string): void
   scene: Scene
   tilePx: TilePx
   children?: ReactNode
 }
 
-export function ControlPanel({ generator, params, onParamChange, scene, tilePx, children }: Props) {
+export function ControlPanel({ generator, params, lockedKeys, onParamChange, onToggleLock, onRandomizeParam, scene, tilePx, children }: Props) {
   return (
     <aside className="panel">
       <section className="panel-section">
         <h2>Parameters</h2>
         {generator.params.map((def) => (
-          <ParamControl key={def.key} def={def} value={params[def.key] ?? def.default} onChange={(v) => onParamChange(def.key, v)} />
+          <ParamControl
+            key={def.key}
+            def={def}
+            value={params[def.key] ?? def.default}
+            locked={lockedKeys.includes(def.key)}
+            onChange={(v) => onParamChange(def.key, v)}
+            onToggleLock={() => onToggleLock(def.key)}
+            onRandomize={() => onRandomizeParam(def.key)}
+          />
         ))}
       </section>
       {children}

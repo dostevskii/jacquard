@@ -39,7 +39,17 @@ body { background: var(--bg); color: var(--text); }
 }
 .control .num { width: 80px; justify-self: end; }
 .control .num.invalid { border-color: #e63b2e; }
-.control.toggle { grid-template-columns: 1fr auto; align-items: center; }
+.control-head { display: flex; align-items: center; gap: 4px; min-height: 22px; }
+.control-head .control-label { flex: none; }
+.control.locked .control-label { color: var(--text); }
+.control.toggle { grid-template-columns: 1fr; }
+.control.toggle input[type='checkbox'] { margin: 0 4px 0 0; }
+.icon-btn {
+  display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px;
+  padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--muted); cursor: pointer;
+}
+.icon-btn:hover { color: var(--text); background: var(--border); }
+.icon-btn.lock.on { color: var(--accent); }
 .segmented { display: inline-flex; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
 .segmented button {
   background: transparent; color: var(--muted); border: 0; padding: 4px 10px; font: inherit; cursor: pointer;

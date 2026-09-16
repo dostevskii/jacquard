@@ -4,7 +4,9 @@ import { decodeState, encodeState } from './core/state'
 import type { ParamValue } from './core/params'
 import { defaultParams } from './core/params'
 import { DEFAULT_PALETTE, ensurePaletteLength } from './core/palettes'
-import { randomSeed } from './core/prng'
+import { clampSwatchLocks, clearParamLocks, lockParam, toggleParamLock } from './core/locks'
+import { randomParamValue } from './core/random'
+import { mulberry32, randomSeed } from './core/prng'
 import { DEFAULT_GENERATOR_ID, GENERATORS, generateScene, getGenerator } from './generators'
 import { tilePixelSize } from './render/canvas'
 import { TopBar } from './ui/TopBar'
@@ -38,18 +40,34 @@ export default function App() {
     return () => clearTimeout(t)
   }, [pattern])
 
+  // 사용자가 값을 바꾸면 그 매개변수는 잠긴다
   const setParam = (key: string, value: ParamValue) =>
-    setPattern((p) => ({ ...p, params: { ...p.params, [key]: value } }))
+    setPattern((p) => ({ ...p, params: { ...p.params, [key]: value }, locks: lockParam(p.locks, key) }))
+
+  // 개별 주사위: 값만 바꾸고 잠금은 건드리지 않는다
+  const randomizeParam = (key: string) =>
+    setPattern((p) => {
+      const def = getGenerator(p.generator)?.params.find((d) => d.key === key)
+      if (!def) return p
+      return { ...p, params: { ...p.params, [key]: randomParamValue(def, mulberry32(randomSeed())) } }
+    })
+
+  const onToggleParamLock = (key: string) => setPattern((p) => ({ ...p, locks: toggleParamLock(p.locks, key) }))
 
   const selectGenerator = (id: string) => {
     const g = getGenerator(id)
     if (!g) return
-    setPattern((p) => ({
-      ...p,
-      generator: id,
-      params: defaultParams(g.params),
-      palette: ensurePaletteLength(p.palette, g.minColors),
-    }))
+    setPattern((p) => {
+      const palette = ensurePaletteLength(p.palette, g.minColors)
+      return {
+        ...p,
+        generator: id,
+        params: defaultParams(g.params),
+        palette,
+        // 키가 달라지므로 매개변수 잠금은 초기화, 팔레트 잠금은 길이에 맞춰 유지
+        locks: clampSwatchLocks(clearParamLocks(p.locks), palette.length),
+      }
+    })
   }
 
   return (
@@ -65,7 +83,16 @@ export default function App() {
         onExport={() => setExportOpen(true)}
       />
       <div className="body">
-        <ControlPanel generator={generator} params={pattern.params} onParamChange={setParam} scene={scene} tilePx={tilePx}>
+        <ControlPanel
+          generator={generator}
+          params={pattern.params}
+          lockedKeys={pattern.locks.params}
+          onParamChange={setParam}
+          onToggleLock={onToggleParamLock}
+          onRandomizeParam={randomizeParam}
+          scene={scene}
+          tilePx={tilePx}
+        >
           <PalettePanel
             palette={pattern.palette}
             minColors={generator.minColors}

@@ -1,11 +1,38 @@
 import { useState } from 'react'
+import type { ReactNode } from 'react'
 import type { ParamDef, ParamValue } from '../core/params'
 import { snapValue } from '../core/params'
+import { LockButton } from './LockButton'
+import { DiceButton } from './DiceButton'
 
 interface Props {
   def: ParamDef
   value: ParamValue
+  locked: boolean
   onChange(v: ParamValue): void
+  onToggleLock(): void
+  onRandomize(): void
+}
+
+interface HeadProps {
+  label: string
+  locked: boolean
+  onToggleLock(): void
+  onRandomize(): void
+  children?: ReactNode
+}
+
+/** 라벨 줄: [라벨] [spacer] [children] [주사위] [자물쇠] */
+function ControlHead({ label, locked, onToggleLock, onRandomize, children }: HeadProps) {
+  return (
+    <div className="control-head">
+      <span className="control-label">{label}</span>
+      <span className="spacer" />
+      {children}
+      <DiceButton onClick={onRandomize} title={`Randomize ${label}`} />
+      <LockButton locked={locked} onToggle={onToggleLock} label={label} />
+    </div>
+  )
 }
 
 interface NumberFieldProps {
@@ -47,30 +74,33 @@ function NumberField({ value, snap, onCommit }: NumberFieldProps) {
   )
 }
 
-export function ParamControl({ def, value, onChange }: Props) {
+export function ParamControl({ def, value, locked, onChange, onToggleLock, onRandomize }: Props) {
+  const cls = `control${locked ? ' locked' : ''}`
+  const head = { label: def.label, locked, onToggleLock, onRandomize }
   if (def.type === 'range') {
     const v = typeof value === 'number' ? value : def.default
     return (
-      <label className="control">
-        <span className="control-label">{def.label}</span>
+      <div className={cls}>
+        <ControlHead {...head} />
         <input
           type="range"
           min={def.min}
           max={def.max}
           step={def.step}
           value={v}
+          aria-label={def.label}
           onChange={(e) => onChange(snapValue(def, Number(e.target.value)))}
         />
         <NumberField value={v} snap={(n) => snapValue(def, n)} onCommit={onChange} />
-      </label>
+      </div>
     )
   }
   if (def.type === 'select') {
     const v = typeof value === 'string' ? value : def.default
-    if (def.options.length <= 4) {
-      return (
-        <div className="control">
-          <span className="control-label">{def.label}</span>
+    return (
+      <div className={cls}>
+        <ControlHead {...head} />
+        {def.options.length <= 4 ? (
           <div className="segmented">
             {def.options.map((o) => (
               <button key={o.value} type="button" className={o.value === v ? 'on' : ''} onClick={() => onChange(o.value)}>
@@ -78,25 +108,22 @@ export function ParamControl({ def, value, onChange }: Props) {
               </button>
             ))}
           </div>
-        </div>
-      )
-    }
-    return (
-      <label className="control">
-        <span className="control-label">{def.label}</span>
-        <select value={v} onChange={(e) => onChange(e.target.value)}>
-          {def.options.map((o) => (
-            <option key={o.value} value={o.value}>{o.label}</option>
-          ))}
-        </select>
-      </label>
+        ) : (
+          <select value={v} aria-label={def.label} onChange={(e) => onChange(e.target.value)}>
+            {def.options.map((o) => (
+              <option key={o.value} value={o.value}>{o.label}</option>
+            ))}
+          </select>
+        )}
+      </div>
     )
   }
   const v = typeof value === 'boolean' ? value : def.default
   return (
-    <label className="control toggle">
-      <span className="control-label">{def.label}</span>
-      <input type="checkbox" checked={v} onChange={(e) => onChange(e.target.checked)} />
-    </label>
+    <div className={`${cls} toggle`}>
+      <ControlHead {...head}>
+        <input type="checkbox" checked={v} aria-label={def.label} onChange={(e) => onChange(e.target.checked)} />
+      </ControlHead>
+    </div>
   )
 }
