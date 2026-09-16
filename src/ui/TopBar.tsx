@@ -36,6 +36,8 @@ export function TopBar(p: Props) {
   useEffect(() => () => clearTimeout(copyTimer.current), [])
 
   const commitSeed = () => {
+    // 편집하지 않은 채 blur/Enter만 한 경우에는 시드를 다시 확정하지 않는다(의도치 않은 자동 잠금 방지)
+    if (seedDraft === null) return
     setSeedDraft(null)
     const n = Number(seedText)
     if (seedText.trim() !== '' && Number.isInteger(n) && n >= 0 && n <= MAX_SEED) p.onSeedChange(n)

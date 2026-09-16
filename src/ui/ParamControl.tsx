@@ -37,6 +37,7 @@ function ControlHead({ label, locked, onToggleLock, onRandomize, children }: Hea
 
 interface NumberFieldProps {
   value: number
+  label: string
   snap(v: number): number
   onCommit(v: number): void
 }
@@ -45,12 +46,14 @@ interface NumberFieldProps {
  * 타이핑하는 동안은 값을 확정하지 않고, blur나 Enter에서만 스냅해 확정한다.
  * 훅이 조건부로 호출되지 않도록 ParamControl 안이 아니라 별도 컴포넌트로 둔다.
  */
-function NumberField({ value, snap, onCommit }: NumberFieldProps) {
+function NumberField({ value, label, snap, onCommit }: NumberFieldProps) {
   // 입력 중에만 draft를 들고 있고, 확정되면 null로 되돌려 바깥 값(슬라이더)을 그대로 따라간다
   const [draft, setDraft] = useState<string | null>(null)
   const text = draft ?? String(value)
 
   const commit = () => {
+    // 편집하지 않은 채 blur/Enter만 한 경우에는 값을 다시 확정하지 않는다(의도치 않은 자동 잠금 방지)
+    if (draft === null) return
     setDraft(null)
     const n = Number(text)
     if (text.trim() === '' || !Number.isFinite(n)) return
@@ -64,6 +67,7 @@ function NumberField({ value, snap, onCommit }: NumberFieldProps) {
       className={invalid ? 'num invalid' : 'num'}
       type="text"
       inputMode="decimal"
+      aria-label={label}
       value={text}
       onChange={(e) => setDraft(e.target.value)}
       onBlur={commit}
@@ -91,7 +95,7 @@ export function ParamControl({ def, value, locked, onChange, onToggleLock, onRan
           aria-label={def.label}
           onChange={(e) => onChange(snapValue(def, Number(e.target.value)))}
         />
-        <NumberField value={v} snap={(n) => snapValue(def, n)} onCommit={onChange} />
+        <NumberField value={v} label={def.label} snap={(n) => snapValue(def, n)} onCommit={onChange} />
       </div>
     )
   }

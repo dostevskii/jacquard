@@ -40,9 +40,13 @@ export default function App() {
     return () => clearTimeout(t)
   }, [pattern])
 
-  // 사용자가 값을 바꾸면 그 매개변수는 잠긴다
+  // 사용자가 값을 실제로 바꾸면 그 매개변수는 잠긴다. 값이 그대로면 잠그지 않는다
   const setParam = (key: string, value: ParamValue) =>
-    setPattern((p) => ({ ...p, params: { ...p.params, [key]: value }, locks: lockParam(p.locks, key) }))
+    setPattern((p) => ({
+      ...p,
+      params: { ...p.params, [key]: value },
+      locks: value === p.params[key] ? p.locks : lockParam(p.locks, key),
+    }))
 
   // 개별 주사위: 값만 바꾸고 잠금은 건드리지 않는다
   const randomizeParam = (key: string) =>
@@ -54,8 +58,9 @@ export default function App() {
 
   const onToggleParamLock = (key: string) => setPattern((p) => ({ ...p, locks: toggleParamLock(p.locks, key) }))
 
-  // 시드를 직접 입력하면 시드가 잠긴다
-  const setSeed = (seed: number) => setPattern((p) => ({ ...p, seed, locks: { ...p.locks, seed: true } }))
+  // 시드를 직접 입력해 값이 실제로 바뀌면 시드가 잠긴다
+  const setSeed = (seed: number) =>
+    setPattern((p) => ({ ...p, seed, locks: seed === p.seed ? p.locks : { ...p.locks, seed: true } }))
   const randomizeSeedOnly = () => setPattern((p) => ({ ...p, seed: randomSeed() }))
   const onToggleSeedLock = () => setPattern((p) => ({ ...p, locks: toggleSeedLock(p.locks) }))
   // 전역 Randomize: 잠기지 않은 시드·매개변수·스와치만

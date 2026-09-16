@@ -43,7 +43,7 @@ body { background: var(--bg); color: var(--text); }
 .control-head .control-label { flex: none; }
 .control.locked .control-label { color: var(--text); }
 .control.toggle { grid-template-columns: 1fr; }
-.control.toggle input[type='checkbox'] { margin: 0 4px 0 0; }
+.control.toggle input[type='checkbox'] { margin: 0; }
 .icon-btn {
   display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px;
   padding: 0; border: 0; border-radius: 4px; background: transparent; color: var(--muted); cursor: pointer;

@@ -3,7 +3,7 @@ interface IconProps {
   size?: number
 }
 
-export function LockIcon({ locked, size = 14 }: IconProps) {
+export function LockIcon({ locked, size = 16 }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 16 16" aria-hidden="true">
       <rect x="3" y="7" width="10" height="7" rx="1.5" fill="currentColor" />
