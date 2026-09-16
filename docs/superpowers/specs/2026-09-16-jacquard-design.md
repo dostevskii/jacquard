@@ -224,7 +224,7 @@ export function tilePixelSize(scene: Scene, scale: number): { w: number; h: numb
 - 모드
   - `tile`: 배율(px/unit) 지정. 출력 = 타일 1장.
   - `canvas`: 폭·높이 지정. 프리셋 1080×1080, 1920×1080, 1080×1920, 2480×3508(A4 300dpi), 3508×4961(A3 300dpi) + 직접 입력. 타일 배율은 미리보기와 같은 값을 쓴다.
-- 한 변 최대 8192px. 넘으면 버튼을 비활성화하고 이유를 표시한다.
+- 한 변 최대 8192px. 넘으면 버튼을 비활성화하고 이유를 표시한다. 캔버스 모드의 타일 배율은 타일 한 변이 8192px를 넘지 않도록 자동으로 낮추고(`clampTileScale`), 클램프가 적용되면 대화상자에 표시한다.
 - 파일명: `jacquard-<generator>-<seed>.<ext>`.
 
 ### 4.7 URL 상태 (core/state.ts)
@@ -272,7 +272,7 @@ export function tilePixelSize(scene: Scene, scale: number): { w: number; h: numb
 | sameSett | toggle | | true | weft가 warp 시퀀스를 그대로 사용 |
 | blend | select | mix / weave / alternate | mix | mix: RGB 평균, weave: 1 cell 체커로 두 색 교대(트윌 느낌), alternate: 교차부마다 warp·weft 색이 번갈아 위로 올라옴 |
 
-타일 크기 = 세트 총 길이(cell) × cell, 가로·세로 각각. 줄 색은 rng가 `palette[1..]`에서 뽑되 인접 줄은 다른 색. minColors 3.
+타일 크기 = 세트 총 길이(cell) × cell, 가로·세로 각각. 줄 색은 rng가 `palette[1..]`에서 뽑되 인접 줄은 다른 색(비대칭 모드에서는 마지막 줄과 첫 줄도 다르게). 이음새 규칙: 세트 총 셀 수는 짝수여야 weave 체커가 경계에서 이어지므로 홀수면 첫 줄 폭을 1 늘린다(대칭 세트의 회문 성질은 유지됨). 비대칭 모드에서 `sett`가 홀수면 줄을 하나 더 만들어 alternate 교차 수를 짝수로 맞춘다. minColors 3.
 
 ### 5.3 `zigzag` — 셰브런 (grid)  참고 1
 
@@ -302,9 +302,9 @@ export function tilePixelSize(scene: Scene, scale: number): { w: number; h: numb
 | smooth | range | 0..2 | 1 | 이웃 4칸 중 3칸 이상이 채워진 빈 칸을 채우는 패스 횟수(구멍·오목부만 메움) |
 | spacing | range | 0..6 | 2 | 모티프 사이 간격(cell) |
 | bandRows | range | 0..4 | 2 | 모티프 행 사이 줄무늬 띠 높이(cell). 0이면 없음 |
-| stagger | toggle | | false | 홀수 행 모티프를 floor((size + spacing) / 2) 셀만큼 이동(격자 정렬 유지, 타일에 모티프 2행 포함) |
+| stagger | toggle | | false | 홀수 행 모티프를 floor(across / 2) 셀만큼 이동(격자 정렬 유지, 타일에 모티프 2행 포함) |
 
-색: 모티프 `palette[1]`, 띠는 `palette[2]`/`palette[3]` 1 cell 체커 교대(부족하면 순환). 타일 폭 = (size + spacing) × cell, 높이 = (size + spacing + bandRows) × cell × (stagger ? 2 : 1). stagger가 켜지면 둘째 모티프 행이 좌우 경계를 넘으므로 `tileWrap`으로 자른다. minColors 3.
+색: 모티프 `palette[1]`, 띠는 `palette[2]`/`palette[3]` 1 cell 체커 교대(부족하면 순환). 타일 폭 셀 수 `across = size + spacing`이 홀수면 1을 더해 짝수로 맞춘다(띠 체커가 세로 이음새에서 이어지도록). 타일 폭 = across × cell, 높이 = (across + bandRows) × cell × (stagger ? 2 : 1). 모티프는 `floor((across − size) / 2)` 셀만큼 들여 놓아 항상 격자에 정렬된다. stagger 이동량은 `floor(across / 2)` 셀. stagger가 켜지면 둘째 모티프 행이 좌우 경계를 넘으므로 `tileWrap`으로 자른다. minColors 3.
 
 ### 5.5 `rings` — 동심 사각 타일 (grid)  참고 12, 2
 
