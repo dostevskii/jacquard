@@ -10,9 +10,10 @@ import { zigzag } from './zigzag'
 import { motif } from './motif'
 import { rings } from './rings'
 import { gradientBars } from './gradientBars'
+import { isoCubes } from './isoCubes'
 
 // 2부에서 생성기를 추가할 때 import와 이 배열에 한 줄씩 추가한다
-export const GENERATORS: GeneratorDef[] = [stripes, plaid, zigzag, motif, rings, gradientBars]
+export const GENERATORS: GeneratorDef[] = [stripes, plaid, zigzag, motif, rings, gradientBars, isoCubes]
 
 export const DEFAULT_GENERATOR_ID = 'stripes'
 

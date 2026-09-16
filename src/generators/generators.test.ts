@@ -22,6 +22,7 @@ const CASES: Case[] = [
   { id: 'motif', rngParams: { density: 0.5 } },
   { id: 'rings', rngParams: { maxRing: 4 } },
   { id: 'gradientBars', rngParams: { colorMode: 'random' } },
+  { id: 'isoCubes', rngParams: { shuffle: true } },
 ]
 
 describe('registry', () => {
