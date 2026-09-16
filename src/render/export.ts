@@ -51,7 +51,9 @@ export function renderForExport(scene: Scene, settings: ExportSettings): HTMLCan
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('2D canvas context is unavailable')
   if (settings.mode === 'tile') renderTile(scene, size, ctx)
-  else renderFill(scene, tilePixelSize(scene, settings.scale), ctx, size.w, size.h)
+  // renderFill이 false면 빈 캔버스가 그대로 인코딩되므로, 대화상자 오류 줄에 드러나도록 throw한다
+  else if (!renderFill(scene, tilePixelSize(scene, settings.scale), ctx, size.w, size.h))
+    throw new Error('Tile rendering failed')
   return canvas
 }
 
