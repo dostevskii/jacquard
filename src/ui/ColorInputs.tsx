@@ -26,6 +26,8 @@ function NumberField({ label, value, min, max, onCommit }: NumberFieldProps) {
         max={max}
         value={Math.round(value)}
         onChange={(e) => {
+          // 필드를 비운 순간 Number('') === 0이 커밋되지 않게 한다
+          if (e.target.value === '') return
           const n = Number(e.target.value)
           if (Number.isFinite(n) && n >= min && n <= max) onCommit(n)
         }}

@@ -16,17 +16,21 @@ export function PalettePanel({ palette, minColors, onChange }: Props) {
   const [selected, setSelected] = useState(0)
   const sel = Math.min(selected, palette.length - 1)
   const current = palette[sel]
-  // 편집기가 마지막으로 만든 hsv와 그때의 hex를 함께 들고 있는다
-  const [edited, setEdited] = useState<{ hex: string; hsv: Hsv }>(() => ({ hex: current, hsv: hsvOf(current) }))
-  // 편집기가 만든 값이면 hex만으로는 복원되지 않는 색상(s나 v가 0)까지 유지하고,
-  // 외부 변경(프리셋, 셔플, 스와치 이동, URL 복원)이면 hex에서 다시 계산한다
-  const hsv = edited.hex === current ? edited.hsv : hsvOf(current)
+  // 편집기가 마지막으로 만든 hsv와 그때의 스와치 인덱스·hex를 함께 들고 있는다
+  const [edited, setEdited] = useState<{ index: number; hex: string; hsv: Hsv }>(() => ({
+    index: sel,
+    hex: current,
+    hsv: hsvOf(current),
+  }))
+  // 같은 스와치를 편집기가 만든 값이면 hex만으로는 복원되지 않는 색상(s나 v가 0)까지 유지하고,
+  // 외부 변경(프리셋, 셔플, 스와치 이동, URL 복원)이나 다른 스와치면 hex에서 다시 계산한다
+  const hsv = edited.index === sel && edited.hex === current ? edited.hsv : hsvOf(current)
 
   const minLen = Math.max(minColors, MIN_COLORS)
 
   const edit = (next: Hsv) => {
     const hex = toHex(hsvToRgb(next))
-    setEdited({ hex, hsv: next })
+    setEdited({ index: sel, hex, hsv: next })
     const p = palette.slice()
     p[sel] = hex
     onChange(p)
