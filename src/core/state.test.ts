@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest'
 import type { ParamDef } from './params'
 import type { PatternState, ResolveGenerator } from './state'
 import { encodeState, decodeState, normalizePalette, DEFAULT_SEED } from './state'
+import { emptyLocks } from './locks'
 
 const A_DEFS: ParamDef[] = [
   { type: 'range', key: 'cell', label: 'Cell', min: 4, max: 64, step: 2, default: 16 },
@@ -16,7 +17,7 @@ const defaults = { generator: 'a', palette: ['#000000', '#ffffff', '#ff0000', '#
 
 describe('encode/decode', () => {
   it('round-trips a valid state', () => {
-    const state: PatternState = { generator: 'b', seed: 4242, params: { flag: true }, palette: ['#111111', '#e63b2e'] }
+    const state: PatternState = { generator: 'b', seed: 4242, params: { flag: true }, palette: ['#111111', '#e63b2e'], locks: { seed: true, params: ['flag'], palette: [1] } }
     const hash = encodeState(state)
     expect(hash).toMatch(/^[A-Za-z0-9_-]+$/)
     expect(decodeState('#' + hash, resolve, defaults)).toEqual(state)
@@ -24,29 +25,35 @@ describe('encode/decode', () => {
   })
   it('returns defaults for empty or garbage hash', () => {
     const base = decodeState('', resolve, defaults)
-    expect(base).toEqual({ generator: 'a', seed: DEFAULT_SEED, params: { cell: 16, mode: 'x' }, palette: defaults.palette })
+    expect(base).toEqual({ generator: 'a', seed: DEFAULT_SEED, params: { cell: 16, mode: 'x' }, palette: defaults.palette, locks: emptyLocks() })
     expect(decodeState('#not-base64!!', resolve, defaults)).toEqual(base)
     expect(decodeState('#' + btoa('[1,2,3]'), resolve, defaults)).toEqual(base)
     expect(decodeState('#' + btoa('42'), resolve, defaults)).toEqual(base)
   })
   it('falls back to the default generator for unknown ids', () => {
-    const hash = encodeState({ generator: 'zzz', seed: 5, params: {}, palette: ['#000000', '#ffffff'] })
+    const hash = encodeState({ generator: 'zzz', seed: 5, params: {}, palette: ['#000000', '#ffffff'], locks: emptyLocks() })
     const out = decodeState(hash, resolve, defaults)
     expect(out.generator).toBe('a')
     expect(out.seed).toBe(5)
     expect(out.params).toEqual({ cell: 16, mode: 'x' })
   })
   it('clamps params and seed', () => {
-    const hash = encodeState({ generator: 'a', seed: -3, params: { cell: 999, mode: 'nope' }, palette: ['#000000', '#ffffff', '#ff0000'] })
+    const hash = encodeState({ generator: 'a', seed: -3, params: { cell: 999, mode: 'nope' }, palette: ['#000000', '#ffffff', '#ff0000'], locks: emptyLocks() })
     const out = decodeState(hash, resolve, defaults)
     expect(out.seed).toBe(DEFAULT_SEED)
     expect(out.params).toEqual({ cell: 64, mode: 'x' })
   })
   it('normalizes the palette', () => {
-    const hash = encodeState({ generator: 'a', seed: 1, params: {}, palette: ['#ABC', 'junk', '#ffffff'] })
+    const hash = encodeState({ generator: 'a', seed: 1, params: {}, palette: ['#ABC', 'junk', '#ffffff'], locks: emptyLocks() })
     const out = decodeState(hash, resolve, defaults)
     expect(out.palette.slice(0, 2)).toEqual(['#aabbcc', '#ffffff'])
     expect(out.palette.length).toBeGreaterThanOrEqual(3)
+  })
+  it('restores empty locks for a hash without locks and filters bad locks', () => {
+    const legacy = btoa(JSON.stringify({ generator: 'a', seed: 2, params: { cell: 8 }, palette: ['#000000', '#ffffff', '#ff0000'] }))
+    expect(decodeState('#' + legacy, resolve, defaults).locks).toEqual(emptyLocks())
+    const hash = encodeState({ generator: 'a', seed: 2, params: {}, palette: ['#000000', '#ffffff', '#ff0000'], locks: { seed: true, params: ['cell', 'nope'], palette: [0, 7] } })
+    expect(decodeState(hash, resolve, defaults).locks).toEqual({ seed: true, params: ['cell'], palette: [0] })
   })
 })
 

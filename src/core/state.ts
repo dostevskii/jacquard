@@ -3,12 +3,15 @@ import { clampParams, defaultParams } from './params'
 import { ensurePaletteLength, MAX_COLORS, MIN_COLORS } from './palettes'
 import { parseHex, toHex } from './color'
 import { MAX_SEED } from './prng'
+import type { LockState } from './locks'
+import { emptyLocks, normalizeLocks } from './locks'
 
 export interface PatternState {
   generator: string
   seed: number
   params: Params
   palette: string[]
+  locks: LockState
 }
 
 export interface GeneratorInfo {
@@ -65,6 +68,7 @@ export function decodeState(hash: string, resolve: ResolveGenerator, defaults: S
     params: defaultParams(defaultInfo.params),
     // slice로 복사해 App 상태가 PRESETS의 배열을 그대로 참조하지 않게 한다
     palette: ensurePaletteLength(defaults.palette.slice(), defaultInfo.minColors),
+    locks: emptyLocks(),
   }
   const raw = hash.replace(/^#/, '')
   if (!raw) return base
@@ -87,10 +91,12 @@ export function decodeState(hash: string, resolve: ResolveGenerator, defaults: S
   const rawParams = typeof obj.params === 'object' && obj.params !== null && !Array.isArray(obj.params)
     ? (obj.params as Record<string, unknown>)
     : {}
+  const palette = normalizePalette(obj.palette, info.minColors, defaults.palette)
   return {
     generator,
     seed,
     params: clampParams(info.params, rawParams),
-    palette: normalizePalette(obj.palette, info.minColors, defaults.palette),
+    palette,
+    locks: normalizeLocks(obj.locks, info.params.map((d) => d.key), palette.length),
   }
 }

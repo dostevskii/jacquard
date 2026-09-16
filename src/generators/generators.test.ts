@@ -3,6 +3,7 @@ import type { ParamValue } from '../core/params'
 import { defaultParams } from '../core/params'
 import { EPS, shapeBounds } from '../core/scene'
 import { PRESETS, ensurePaletteLength } from '../core/palettes'
+import { emptyLocks } from '../core/locks'
 import { GENERATORS, getGenerator, generateScene, DEFAULT_GENERATOR_ID } from './index'
 import { PALETTE8, run, colorsOf } from './testUtils'
 
@@ -37,7 +38,7 @@ describe('registry', () => {
     for (const g of GENERATORS) expect(CASES.some((c) => c.id === g.id)).toBe(true)
   })
   it('generateScene pads a short palette and clamps params', () => {
-    const scene = generateScene({ generator: DEFAULT_GENERATOR_ID, seed: 3, params: { cell: 9999 }, palette: ['#000000', '#ffffff'] })
+    const scene = generateScene({ generator: DEFAULT_GENERATOR_ID, seed: 3, params: { cell: 9999 }, palette: ['#000000', '#ffffff'], locks: emptyLocks() })
     expect(scene.shapes.length).toBeGreaterThan(0)
   })
 })
