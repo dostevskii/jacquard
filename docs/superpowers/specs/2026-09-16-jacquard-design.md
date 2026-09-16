@@ -267,7 +267,7 @@ export function tilePixelSize(scene: Scene, scale: number): { w: number; h: numb
 | maxStripe | range | 1..8 | 4 | 줄 폭 상한(cell), rng로 1..maxStripe |
 | symmetric | toggle | | true | 반 세트를 거울 대칭으로 이어 전통 타탄 세트 구성 |
 | sameSett | toggle | | true | weft가 warp 시퀀스를 그대로 사용 |
-| blend | select | mix / weave / warp | mix | mix: RGB 평균, weave: 1 cell 체커로 두 색 교대(트윌 느낌), warp: 세로 줄이 위 |
+| blend | select | mix / weave / alternate | mix | mix: RGB 평균, weave: 1 cell 체커로 두 색 교대(트윌 느낌), alternate: 교차부마다 warp·weft 색이 번갈아 위로 올라옴 |
 
 타일 크기 = 세트 총 길이(cell) × cell, 가로·세로 각각. 줄 색은 rng가 `palette[1..]`에서 뽑되 인접 줄은 다른 색. minColors 3.
 
@@ -279,7 +279,7 @@ export function tilePixelSize(scene: Scene, scale: number): { w: number; h: numb
 |---|---|---|---|---|
 | cell | range | 2..32 | 6 | 격자 칸(unit) |
 | wavelength | range | 4..64 step 2 | 16 | 한 주기 폭(cell) → 타일 폭 |
-| amplitude | range | 1..32 | 6 | 진폭(cell) |
+| amplitude | range | 0..32 | 6 | 진폭(cell). 0이면 수평 줄무늬 |
 | bandHeight | range | 1..16 | 3 | 띠 두께(cell) |
 | bands | range | 2..12 | 6 | 띠 수 → 타일 높이 = bands × bandHeight × cell |
 | colorMode | select | sequence / random | sequence | 띠 색 배정 |
@@ -457,7 +457,7 @@ export function mix(a: string, b: string, t?: number): string; // RGB 선형 혼
 1. 스캐폴드: Vite React-TS 템플릿, oxlint, vitest, 빈 App, `npm run build` 통과 → 커밋
 2. 코어: prng → color → scene(tileWrap, clip) → params → state → palettes (각각 테스트 먼저) → 커밋
 3. 렌더러와 앱 골격: canvas.ts, Preview, TopBar, ControlPanel/ParamControl, 첫 생성기 `stripes`로 화면 확인 → 커밋
-4. 생성기 순차 추가: plaid → zigzag → gradientBars → motif → rings → isoCubes → triangles (생성기마다 커밋)
+4. 생성기 순차 추가: plaid → zigzag → motif → rings → gradientBars → isoCubes → triangles (계열 순서 = 드롭다운 순서, 생성기마다 커밋)
 5. 팔레트 패널 + 색 편집기(색상환, 숫자 입력) → 커밋
 6. 내보내기 대화상자 + URL 상태 공유 → 커밋
 7. 스크린샷, Cloudflare Pages 배포, README(한·영), GitHub About 정리 → 커밋
