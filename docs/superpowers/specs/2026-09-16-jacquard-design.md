@@ -201,6 +201,9 @@ export function clipPolygonToRect(points: number[], x0: number, y0: number, x1: 
 복사할 때 `linear` 페인트의 좌표도 같은 오프셋으로 이동시킨다. 생성기는 경계를 약간 넘어
 자유롭게 그린 뒤 마지막에 `tileWrap`을 한 번 호출하면 된다.
 
+전제 조건: 도형 하나의 폭·높이는 타일 폭·높이를 넘지 않아야 한다. 타일보다 큰 도형은 조각이
+겹쳐 나오므로 생성기는 타일 크기를 도형보다 크거나 같게 잡는다(8종 모두 이 조건을 만족한다).
+
 ### 4.5 렌더러 (render/canvas.ts)
 
 ```ts
@@ -251,7 +254,7 @@ export function tilePixelSize(scene: Scene, scale: number): { w: number; h: numb
 | rows | range | 2..12 step 2 | 6 | 띠 수(짝수) → 타일 높이 = rows × (bandHeight + separator) × cell |
 | offset | range | 0..1 step 0.25 | 0.5 | 홀수 행의 시작점 이동(세그먼트 길이 비율). 짝수 행은 0 |
 | separator | range | 0..3 | 1 | 띠 사이 배경색 구분선 두께(cell) |
-| colorMode | select | sequence / alternate / random | sequence | sequence: 세그먼트마다 팔레트 순환, alternate: 행마다 두 색 교대, random: rng |
+| colorMode | select | sequence / alternate / random | sequence | sequence: 세그먼트마다 팔레트 순환, alternate: 전경 두 색(palette[1], palette[2])을 세그먼트마다 교대하고 홀수 행은 순서를 뒤집음, random: rng |
 
 오프셋을 짝·홀 행 교대로만 적용하고 rows를 짝수로 제한하므로 수직 이음새가 보장된다.
 오프셋 때문에 타일 오른쪽 경계를 넘는 세그먼트는 `tileWrap`으로 자른다. minColors 3.
@@ -371,7 +374,7 @@ export function tilePixelSize(scene: Scene, scale: number): { w: number; h: numb
 ### 6.1 변환 (core/color.ts)
 
 ```ts
-export type Rgb = { r: number; g: number; b: number };        // 0..255 정수
+export type Rgb = { r: number; g: number; b: number };        // 0..255. parseHex는 정수, hsl/hsv 변환은 소수 유지(왕복 정확도). 반올림은 toHex와 UI 표시에서만
 export type Hsl = { h: number; s: number; l: number };        // h 0..360, s/l 0..100
 export type Hsv = { h: number; s: number; v: number };        // HSB와 동일
 export function parseHex(input: string): Rgb | null;         // '#abc', 'abc', '#aabbcc', 'aabbcc' 허용
@@ -431,7 +434,7 @@ export function mix(a: string, b: string, t?: number): string; // RGB 선형 혼
 - **생성기 전환**: 매개변수를 새 생성기 기본값으로 초기화하고 팔레트·시드는 유지. 팔레트 길이가 `minColors`보다 짧으면 프리셋에서 색을 보충한다.
 - **매개변수 컨트롤(ParamControl)**: range → 라벨 + 슬라이더 + 숫자 입력, select → 세그먼트 버튼(옵션 4개 이하) 또는 `<select>`, toggle → 스위치. 변경은 즉시 상태에 반영된다.
 - **시드**: 숫자 입력 + 주사위 버튼(새 uint32).
-- **미리보기(Preview)**: 캔버스는 영역을 채우고 `devicePixelRatio`를 반영한다. 배율 슬라이더(0.25..4 px/unit, 기본 1). 뷰 모드 Fill은 `renderFill`, Tile은 타일 1장을 중앙에, 3×3은 3×3 반복 위에 1px 점선으로 타일 경계를 그린다. 렌더는 `requestAnimationFrame`으로 합쳐 프레임당 최대 1회 실행한다.
+- **미리보기(Preview)**: 캔버스는 영역을 채우고 `devicePixelRatio`를 반영한다. 배율 슬라이더(0.25..4 px/unit, 기본 1). 뷰 모드 Fill은 `renderFill`, Tile은 타일 1장을 중앙에, 3×3은 3×3 반복 위에 1px 점선으로 타일 경계를 그린다. 렌더는 `requestAnimationFrame`으로 합쳐 프레임당 최대 1회 실행한다. 타일 한 변이 장치 픽셀 8192(`MAX_DIM`)를 넘지 않도록 유효 배율을 낮추고, 그래도 오프스크린 캔버스를 만들 수 없으면 캔버스에 "Preview unavailable" 안내를 그린다.
 - **출력 정보**: 현재 타일의 unit 크기와 배율 적용 px 크기를 패널 하단에 표시한다.
 - **내보내기 대화상자(ExportDialog)**: 형식(PNG/JPG), 모드(Tile/Canvas), Tile이면 배율 입력, Canvas면 프리셋 선택 + 폭·높이 입력. 결과 px 크기를 표시하고 8192 초과 시 경고와 버튼 비활성.
 
