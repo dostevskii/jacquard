@@ -4,8 +4,8 @@ import { decodeState, encodeState } from './core/state'
 import type { ParamValue } from './core/params'
 import { defaultParams } from './core/params'
 import { DEFAULT_PALETTE, ensurePaletteLength } from './core/palettes'
-import { clampSwatchLocks, clearParamLocks, lockParam, toggleParamLock } from './core/locks'
-import { randomParamValue } from './core/random'
+import { clampSwatchLocks, clearParamLocks, lockParam, toggleParamLock, toggleSeedLock } from './core/locks'
+import { randomizeAll, randomParamValue } from './core/random'
 import { mulberry32, randomSeed } from './core/prng'
 import { DEFAULT_GENERATOR_ID, GENERATORS, generateScene, getGenerator } from './generators'
 import { tilePixelSize } from './render/canvas'
@@ -54,6 +54,14 @@ export default function App() {
 
   const onToggleParamLock = (key: string) => setPattern((p) => ({ ...p, locks: toggleParamLock(p.locks, key) }))
 
+  // 시드를 직접 입력하면 시드가 잠긴다
+  const setSeed = (seed: number) => setPattern((p) => ({ ...p, seed, locks: { ...p.locks, seed: true } }))
+  const randomizeSeedOnly = () => setPattern((p) => ({ ...p, seed: randomSeed() }))
+  const onToggleSeedLock = () => setPattern((p) => ({ ...p, locks: toggleSeedLock(p.locks) }))
+  // 전역 Randomize: 잠기지 않은 시드·매개변수·스와치만
+  const randomizeEverything = () =>
+    setPattern((p) => randomizeAll(p, getGenerator(p.generator)?.params ?? [], mulberry32(randomSeed())))
+
   const selectGenerator = (id: string) => {
     const g = getGenerator(id)
     if (!g) return
@@ -76,9 +84,12 @@ export default function App() {
         generators={GENERATORS}
         generatorId={pattern.generator}
         seed={pattern.seed}
+        seedLocked={pattern.locks.seed}
         onGeneratorChange={selectGenerator}
-        onSeedChange={(seed) => setPattern((p) => ({ ...p, seed }))}
-        onRandomSeed={() => setPattern((p) => ({ ...p, seed: randomSeed() }))}
+        onSeedChange={setSeed}
+        onRandomSeed={randomizeSeedOnly}
+        onToggleSeedLock={onToggleSeedLock}
+        onRandomizeAll={randomizeEverything}
         onCopyLink={() => navigator.clipboard.writeText(window.location.href)}
         onExport={() => setExportOpen(true)}
       />

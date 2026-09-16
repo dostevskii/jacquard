@@ -1,14 +1,19 @@
 import { useEffect, useRef, useState } from 'react'
 import type { GeneratorDef } from '../generators/types'
 import { MAX_SEED } from '../core/prng'
+import { DiceButton, DiceIcon } from './DiceButton'
+import { LockButton } from './LockButton'
 
 interface Props {
   generators: GeneratorDef[]
   generatorId: string
   seed: number
+  seedLocked: boolean
   onGeneratorChange(id: string): void
   onSeedChange(seed: number): void
   onRandomSeed(): void
+  onToggleSeedLock(): void
+  onRandomizeAll(): void
   onCopyLink(): Promise<void> | void
   onExport(): void
 }
@@ -57,7 +62,7 @@ export function TopBar(p: Props) {
           <option key={g.id} value={g.id}>{g.name}</option>
         ))}
       </select>
-      <label className="seed">
+      <label className={`seed${p.seedLocked ? ' locked' : ''}`}>
         Seed
         <input
           type="text"
@@ -70,7 +75,11 @@ export function TopBar(p: Props) {
           }}
         />
       </label>
-      <button type="button" className="btn" title="Random seed" onClick={p.onRandomSeed}>🎲</button>
+      <DiceButton onClick={p.onRandomSeed} title="Randomize seed" />
+      <LockButton locked={p.seedLocked} onToggle={p.onToggleSeedLock} label="the seed" />
+      <button type="button" className="btn randomize" title="Randomize everything that is not locked" onClick={p.onRandomizeAll}>
+        <DiceIcon /> Randomize
+      </button>
       <div className="spacer" />
       <button type="button" className="btn" onClick={copyLink}>{COPY_LABEL[copied]}</button>
       <button type="button" className="btn primary" onClick={p.onExport}>Export</button>
