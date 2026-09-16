@@ -98,7 +98,10 @@ export function randomizeAll(state: PatternState, defs: ParamDef[], rng: Rng): P
 | Randomize palette (구 Shuffle) | 잠기지 않은 스와치만 교체, 잠금 변화 없음 |
 | 전역 Randomize | 잠기지 않은 시드·매개변수·스와치만 교체, 잠금 변화 없음 |
 | 자물쇠 아이콘 클릭 | 해당 항목 잠금 토글 |
+| 상단 바 Unlock all | 시드·매개변수·스와치 잠금 전부 해제(잠금이 하나도 없으면 비활성) |
 | 생성기 변경 | 매개변수 잠금 초기화, 시드·팔레트 잠금 유지 |
+
+편집 없이 입력란에 들어갔다 나온 것(blur/Enter)은 "변경"이 아니다: 숫자 입력·시드·HEX 필드는 사용자가 실제로 타이핑했을 때만 값을 확정하고, 확정된 값이 기존 값과 같으면 잠그지 않는다.
 
 원칙: 개별 설정(잠금, 개별 🎲)이 전역 설정보다 우선한다. 개별 🎲는 "이 값은 무작위로 해 달라"는 요청이므로 자동 잠금을 걸지 않는다.
 
@@ -116,17 +119,18 @@ export function randomizeAll(state: PatternState, defs: ParamDef[], rng: Rng): P
 
 ### 6.3 상단 바 (`TopBar`)
 
-`Jacquard │ [Generator ▾] │ Seed [______] 🎲 🔒 │ [🎲 Randomize] │ … │ [☀/☾] │ Copy link │ Export`
+`Jacquard │ [Generator ▾] │ Seed [______] 🎲 🔒 │ [🎲 Randomize] [🔓 Unlock all] │ … │ [☀/☾] │ Copy link │ Export`
 
 - 시드 옆 🎲는 시드만, 🔒는 시드 잠금.
 - `Randomize` 버튼(주사위 아이콘 + 글자)이 전역. title "Randomize everything that is not locked".
+- `Unlock all` 버튼(열린 자물쇠 + 글자)은 모든 잠금을 해제한다. 잠금이 없으면 비활성. title "Unlock every value, color and the seed".
 - 테마 토글은 해/달 아이콘 버튼, title "Switch to dark/light theme".
 
 ### 6.4 팔레트 패널 (`PalettePanel`)
 
-- 각 스와치 오른쪽 위에 작은 자물쇠 배지. 클릭하면 그 스와치 잠금 토글(스와치 선택 클릭과 분리: `stopPropagation`). 잠긴 스와치는 배지가 강조색, 열린 스와치는 배지가 흐리게 hover 시에만 보인다.
+- 각 스와치 오른쪽 위에 작은 자물쇠 배지. 스와치 본체(`button.swatch-pick`)와 배지(`button.swatch-lock`)는 `div.swatch` 안의 형제 버튼이라 클릭이 섞이지 않는다. 잠긴 스와치는 배지가 강조색이고 스와치에 강조색 외곽선이 생기며, 열린 스와치의 배지는 항상 흐리게(불투명도 0.35) 보이다가 hover·키보드 포커스에서 뚜렷해진다(터치 환경 고려). 스와치 본체는 `aria-pressed`로 선택 상태를, 라벨에 hex를 노출한다.
 - 도구 줄: `◀ ▶ + −  [🎲 swatch]  [Preset…]  [Randomize colors]`. `🎲 swatch`는 선택 스와치만 `randomSwatch`. `Randomize colors`(구 Shuffle)는 잠기지 않은 스와치 전부 `randomizePalette`. 상단 바의 전역 `Randomize`와 글자를 다르게 해 혼동을 막는다.
-- props: `{ palette, locks: number[], minColors, onChange(palette: string[], locks: number[]): void }`. 패널이 `core/locks.ts` 헬퍼로 잠금 변화를 계산해 값과 함께 넘긴다(편집 → `lockSwatch`, 프리셋 → `lockAllSwatches`, 이동 → `swatchLocksAfterSwap`, 삭제 → `swatchLocksAfterRemove`).
+- props: `{ palette, locks: LockState, minColors, onChange(palette: string[], locks: LockState): void }`. 패널이 `core/locks.ts` 헬퍼로 잠금 변화를 계산해 값과 함께 넘긴다(편집 → `lockSwatch`(새 hex가 기존과 같으면 잠금 없음), 프리셋 → `lockAllSwatches`, 이동 → `swatchLocksAfterSwap`, 삭제 → `swatchLocksAfterRemove`). 패널은 `locks.seed`·`locks.params`를 건드리지 않고 그대로 되돌려 준다.
 
 ### 6.5 App 연결
 
