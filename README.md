@@ -72,7 +72,8 @@ polygons and linear gradients, the tile you see on screen is the tile that gets 
 - **Seed determinism** — every generator draws its random choices from a mulberry32 PRNG seeded
   by the number in the top bar (0 … 4294967295). Same generator, parameters, palette and seed →
   the same tile, every time, in the browser and in the test run
-- **Palette editing** — 2 to 8 colours. `palette[0]` is always the tile background and is tagged
+- **Palette editing** — up to 8 colours, with a floor set by the generator (3 for most, 4 for Iso
+  Cubes). `palette[0]` is always the tile background and is tagged
   **BG**; the rest are foreground colours, cycled by every generator. Pick a swatch, then set it
   on the colour wheel (angle = hue, distance from centre = saturation), the brightness slider, or
   the HEX / RGB / HSL / HSB fields — all four stay in sync, and hue survives a trip through grey
@@ -122,8 +123,8 @@ The left panel is the instrument; the preview to the right is the result.
   gradient. Nothing else exists in it
 - **Seamless by construction** — a shape that crosses the tile edge goes through `tileWrap`, which
   translates a copy by ±tile size and clips it to the tile with Sutherland–Hodgman, so the piece
-  that leaves the right edge comes back in on the left. Generators whose period already matches
-  the tile (Zigzag, Rings) skip it and say so in a comment
+  that leaves the right edge comes back in on the left. Generators whose shapes already land
+  inside the tile (Plaid, Zigzag, Rings) skip it and say why in a comment
 - **One tile, then repeat** — the renderer draws the Scene once into an offscreen canvas at the
   requested pixel size, and `ctx.createPattern(tile, 'repeat')` fills the preview or the export
   canvas from it. Rectangle edges are rounded to whole device pixels and polygons get a 1 px
@@ -281,7 +282,8 @@ PNG·JPG로 내려받습니다.
 - **시드 결정성** — 모든 생성기는 상단 바의 숫자(0 … 4294967295)로 시드된 mulberry32 PRNG에서만
   무작위를 끌어옵니다. 생성기·매개변수·팔레트·시드가 같으면 브라우저에서도 테스트에서도
   언제나 같은 타일이 나옵니다
-- **팔레트 편집** — 2색에서 8색까지. `palette[0]`은 언제나 타일 배경이고 **BG** 표시가 붙습니다.
+- **팔레트 편집** — 최대 8색이고, 하한은 생성기가 정합니다(대부분 3색, Iso Cubes는 4색).
+  `palette[0]`은 언제나 타일 배경이고 **BG** 표시가 붙습니다.
   나머지는 전경색으로 모든 생성기가 돌려 씁니다. 스와치를 고른 뒤 색상환(각도 = 색상, 중심에서의
   거리 = 채도), 명도 슬라이더, HEX / RGB / HSL / HSB 입력 중 아무거나 쓰면 되고, 네 입력은 서로
   동기화되며 회색을 거쳐도 색상(H)이 유지됩니다
@@ -330,8 +332,8 @@ PNG·JPG로 내려받습니다.
   다각형이고, 채움은 단색 또는 선형 그라데이션입니다. 그 밖에는 아무것도 없습니다
 - **구조적으로 이음새가 없다** — 타일 경계를 넘는 도형은 `tileWrap`을 거칩니다. 타일 크기만큼
   ±이동한 복사본을 만들어 Sutherland–Hodgman으로 타일에 잘라 붙이므로, 오른쪽으로 나간 조각이
-  왼쪽으로 들어옵니다. 주기가 이미 타일과 맞는 생성기(Zigzag, Rings)는 건너뛰고 그 이유를 주석에
-  남깁니다
+  왼쪽으로 들어옵니다. 도형이 이미 타일 안에만 놓이는 생성기(Plaid, Zigzag, Rings)는 건너뛰고 그
+  이유를 주석에 남깁니다
 - **타일 한 장을 그리고 반복한다** — 렌더러는 Scene을 오프스크린 캔버스에 원하는 픽셀 크기로 한 번
   그린 뒤 `ctx.createPattern(tile, 'repeat')`으로 미리보기나 내보내기 캔버스를 채웁니다. 사각형
   변은 장치 픽셀에 맞춰 반올림하고 다각형에는 같은 색으로 1px 스트로크를 덧그려, 안티에일리어싱
