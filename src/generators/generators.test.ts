@@ -19,6 +19,7 @@ const CASES: Case[] = [
   { id: 'stripes', rngParams: { colorMode: 'random' } },
   { id: 'plaid', rngParams: { blend: 'weave' }, mixedColors: true },
   { id: 'zigzag', rngParams: { colorMode: 'random' } },
+  { id: 'motif', rngParams: { density: 0.5 } },
 ]
 
 describe('registry', () => {

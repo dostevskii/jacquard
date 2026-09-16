@@ -7,9 +7,10 @@ import type { GeneratorDef } from './types'
 import { stripes } from './stripes'
 import { plaid } from './plaid'
 import { zigzag } from './zigzag'
+import { motif } from './motif'
 
 // 2부에서 생성기를 추가할 때 import와 이 배열에 한 줄씩 추가한다
-export const GENERATORS: GeneratorDef[] = [stripes, plaid, zigzag]
+export const GENERATORS: GeneratorDef[] = [stripes, plaid, zigzag, motif]
 
 export const DEFAULT_GENERATOR_ID = 'stripes'
 
