@@ -21,6 +21,8 @@ export function renderTile(scene: Scene, tilePx: TilePx, ctx: CanvasRenderingCon
   const sx = tilePx.w / scene.width
   const sy = tilePx.h / scene.height
   ctx.save()
+  // 호출자가 남긴 파선 설정이 폴리곤 이음새 스트로크에 새어 들어오지 않게 한다
+  ctx.setLineDash([])
   ctx.fillStyle = scene.background
   ctx.fillRect(0, 0, tilePx.w, tilePx.h)
   for (const s of scene.shapes) {
@@ -53,7 +55,10 @@ export function renderTile(scene: Scene, tilePx: TilePx, ctx: CanvasRenderingCon
   ctx.restore()
 }
 
-/** 타일을 오프스크린에 그린 뒤 반복 패턴으로 origin에서 시작하는 w × h 영역을 채운다 */
+/**
+ * 타일을 오프스크린에 그린 뒤 반복 패턴으로 origin에서 시작하는 w × h 영역을 채운다.
+ * 타일이 너무 커서 오프스크린 컨텍스트나 패턴을 만들지 못하면 아무것도 그리지 않고 false를 반환한다
+ */
 export function renderFill(
   scene: Scene,
   tilePx: TilePx,
@@ -61,18 +66,19 @@ export function renderFill(
   w: number,
   h: number,
   origin: { x: number; y: number } = { x: 0, y: 0 },
-): void {
+): boolean {
   const tile = document.createElement('canvas')
   tile.width = tilePx.w
   tile.height = tilePx.h
   const tctx = tile.getContext('2d')
-  if (!tctx) return
+  if (!tctx) return false
   renderTile(scene, tilePx, tctx)
   const pattern = ctx.createPattern(tile, 'repeat')
-  if (!pattern) return
+  if (!pattern) return false
   ctx.save()
   ctx.translate(origin.x, origin.y)
   ctx.fillStyle = pattern
   ctx.fillRect(0, 0, w, h)
   ctx.restore()
+  return true
 }

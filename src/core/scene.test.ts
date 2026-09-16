@@ -112,4 +112,23 @@ describe('tileWrap', () => {
     expect(out).toHaveLength(2)
     expect(out.reduce((a, s) => a + rectArea(s), 0)).toBeCloseTo(50)
   })
+  it('leaves a shape whose edge lies exactly on the tile edge untouched', () => {
+    const s = rect(80, 0, 20, 10)
+    expect(tileWrap([s], 100, 100)).toEqual([s])
+  })
+  it('wraps a shape starting exactly at the tile edge into one piece', () => {
+    const out = tileWrap([rect(100, 0, 20, 10)], 100, 100)
+    expect(out).toEqual([rect(0, 0, 20, 10)])
+  })
+  it('wraps a polygon crossing a corner into four pieces with the area preserved', () => {
+    const tri: Shape = { kind: 'polygon', points: [90, 90, 110, 90, 110, 110, 90, 110], fill: solid() }
+    const out = tileWrap([tri], 100, 100)
+    expect(out).toHaveLength(4)
+    expect(out.reduce((a, s) => a + rectArea(s), 0)).toBeCloseTo(400)
+  })
+  it('wraps a tile-sized shape at an offset into four non-overlapping pieces covering the tile', () => {
+    const out = tileWrap([rect(30, 40, 100, 100)], 100, 100)
+    expect(out).toHaveLength(4)
+    expect(out.reduce((a, s) => a + rectArea(s), 0)).toBeCloseTo(10000)
+  })
 })

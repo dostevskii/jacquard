@@ -14,6 +14,15 @@ describe('stripes', () => {
     const xs = row1.map((sh) => (sh.kind === 'rect' ? sh.x : -1)).sort((a, b) => a - b)
     expect(xs).toEqual([0, 20, 60])
   })
+  it('alternate mode uses two foreground colors and flips them on odd rows', () => {
+    const s = run('stripes', { colorMode: 'alternate', columns: 2, rows: 2, offset: 0 })
+    const rowColors = (y: number) =>
+      s.shapes.filter((sh) => sh.kind === 'rect' && sh.y === y).sort((a, b) => (a.kind === 'rect' && b.kind === 'rect' ? a.x - b.x : 0))
+        .map((sh) => (sh.fill.type === 'solid' ? sh.fill.color : ''))
+    const bandH = 3 * 16, sep = 1 * 16
+    expect(rowColors(0)).toEqual([PALETTE8[1], PALETTE8[2]])
+    expect(rowColors(bandH + sep)).toEqual([PALETTE8[2], PALETTE8[1]])
+  })
   it('sequence mode cycles foreground colors', () => {
     const s = run('stripes', { colorMode: 'sequence', columns: 3, rows: 2 })
     const colors = s.shapes.map((sh) => (sh.fill.type === 'solid' ? sh.fill.color : ''))

@@ -27,6 +27,7 @@ describe('encode/decode', () => {
     expect(base).toEqual({ generator: 'a', seed: DEFAULT_SEED, params: { cell: 16, mode: 'x' }, palette: defaults.palette })
     expect(decodeState('#not-base64!!', resolve, defaults)).toEqual(base)
     expect(decodeState('#' + btoa('[1,2,3]'), resolve, defaults)).toEqual(base)
+    expect(decodeState('#' + btoa('42'), resolve, defaults)).toEqual(base)
   })
   it('falls back to the default generator for unknown ids', () => {
     const hash = encodeState({ generator: 'zzz', seed: 5, params: {}, palette: ['#000000', '#ffffff'] })

@@ -127,7 +127,11 @@ export function reflectShape(s: Shape, axis: 'x' | 'y', size: number): Shape {
   return { ...s, points, fill }
 }
 
-/** 타일 경계를 넘는 도형을 반대편으로 감아 타일 안에서만 존재하도록 만든다 */
+/**
+ * 타일 경계를 넘는 도형을 반대편으로 감아 타일 안에서만 존재하도록 만든다.
+ * 전제: 각 도형은 축별로 타일보다 크지 않아야 한다(w ≤ width, h ≤ height).
+ * 더 큰 도형을 넣으면 같은 자리를 덮는 조각이 여러 개 나온다
+ */
 export function tileWrap(shapes: Shape[], width: number, height: number): Shape[] {
   const out: Shape[] = []
   for (const s of shapes) {

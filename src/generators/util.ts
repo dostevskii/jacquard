@@ -8,12 +8,13 @@ export function fg(palette: string[], i: number): string {
   return palette[1 + (((i % n) + n) % n)]
 }
 
-/** rng로 전경색 인덱스를 고른다. avoidIndex가 주어지고 색이 2개 이상이면 그 인덱스를 피한다 */
+/** rng로 전경색 인덱스를 고른다. avoidIndex가 주어지고 색이 2개 이상이면 그 인덱스를 뺀 나머지에서 균등하게 뽑는다 */
 export function pickFg(palette: string[], rng: Rng, avoidIndex?: number): number {
   const n = palette.length - 1
   if (n <= 1) return 0
-  let i = rng.int(0, n - 1)
-  if (avoidIndex !== undefined && i === avoidIndex) i = (i + 1) % n
+  if (avoidIndex === undefined || avoidIndex < 0 || avoidIndex >= n) return rng.int(0, n - 1)
+  let i = rng.int(0, n - 2)
+  if (i >= avoidIndex) i++
   return i
 }
 

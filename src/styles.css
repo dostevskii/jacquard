@@ -38,6 +38,7 @@ body { background: var(--bg); color: var(--text); }
   padding: 4px 6px; font: inherit;
 }
 .control .num { width: 80px; justify-self: end; }
+.control .num.invalid { border-color: #e63b2e; }
 .control.toggle { grid-template-columns: 1fr auto; align-items: center; }
 .segmented { display: inline-flex; border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
 .segmented button {

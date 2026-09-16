@@ -32,7 +32,6 @@ export function ensurePaletteLength(palette: string[], minColors: number): strin
     if (out.length >= minColors) break
     if (!out.includes(c)) out.push(c)
   }
-  while (out.length < minColors) out.push(FILLER[out.length % FILLER.length])
   return out
 }
 

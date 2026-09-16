@@ -46,7 +46,8 @@ export const stripes: GeneratorDef = {
       for (let c = 0; c < cols; c++) {
         let color: string
         if (mode === 'random') color = fg(palette, pickFg(palette, rng))
-        else if (mode === 'alternate') color = fg(palette, (c % 2) + 2 * (r % 2))
+        // 한 행 안에서 두 전경색이 번갈아 나오고, 홀수 행은 시작 색이 뒤집힌다
+        else if (mode === 'alternate') color = fg(palette, (c + r) % 2)
         else color = fg(palette, k++)
         shapes.push(rect(c * segL + shift, y, segL, bandH, color))
       }

@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import type { Scene } from '../core/scene'
 import { renderFill, tilePixelSize } from '../render/canvas'
+import { MAX_DIM } from '../render/export'
 
 export type ViewMode = 'fill' | 'tile' | 'grid3'
 
@@ -40,9 +41,21 @@ export function Preview({ scene, view, scale, onViewChange, onScaleChange }: Pro
       if (!ctx) return
       ctx.fillStyle = '#0c0c0c'
       ctx.fillRect(0, 0, canvas.width, canvas.height)
-      const tilePx = tilePixelSize(scene, scale * dpr)
+      const unavailable = () => {
+        ctx.save()
+        ctx.fillStyle = '#9a9a9a'
+        ctx.font = `${14 * dpr}px system-ui`
+        ctx.textAlign = 'center'
+        ctx.textBaseline = 'middle'
+        ctx.fillText('Preview unavailable — tile too large for this browser', canvas.width / 2, canvas.height / 2)
+        ctx.restore()
+      }
+      // 타일 한 변이 브라우저 캔버스 한계를 넘지 않도록 배율을 낮춘다
+      const maxScale = Math.min(MAX_DIM / scene.width, MAX_DIM / scene.height)
+      const eff = Math.min(scale * dpr, maxScale)
+      const tilePx = tilePixelSize(scene, eff)
       if (view === 'fill') {
-        renderFill(scene, tilePx, ctx, canvas.width, canvas.height)
+        if (!renderFill(scene, tilePx, ctx, canvas.width, canvas.height)) unavailable()
         return
       }
       const n = view === 'tile' ? 1 : 3
@@ -50,7 +63,10 @@ export function Preview({ scene, view, scale, onViewChange, onScaleChange }: Pro
       const totalH = tilePx.h * n
       const ox = Math.round((canvas.width - totalW) / 2)
       const oy = Math.round((canvas.height - totalH) / 2)
-      renderFill(scene, tilePx, ctx, totalW, totalH, { x: ox, y: oy })
+      if (!renderFill(scene, tilePx, ctx, totalW, totalH, { x: ox, y: oy })) {
+        unavailable()
+        return
+      }
       if (n === 3) {
         ctx.save()
         ctx.strokeStyle = 'rgba(255,255,255,0.75)'

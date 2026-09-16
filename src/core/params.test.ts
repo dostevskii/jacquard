@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { ParamDef } from './params'
-import { defaultParams, clampParams, num, str, bool } from './params'
+import { defaultParams, clampParams, snapValue, num, str, bool } from './params'
 
 const DEFS: ParamDef[] = [
   { type: 'range', key: 'cell', label: 'Cell', min: 4, max: 64, step: 2, default: 16 },
@@ -40,6 +40,14 @@ describe('clampParams', () => {
     const defs: ParamDef[] = [{ type: 'range', key: 'd', label: 'D', min: 0.1, max: 0.6, step: 0.05, default: 0.3 }]
     expect(clampParams(defs, { d: 0.35 }).d).toBe(0.35)
     expect(clampParams(defs, { d: 0.3 }).d).toBe(0.3)
+  })
+})
+
+describe('snapValue', () => {
+  it('snapValue snaps to step and clamps', () => {
+    const def = DEFS[0] as Extract<ParamDef, { type: 'range' }>
+    expect(snapValue(def, 5)).toBe(6)
+    expect(snapValue(def, 999)).toBe(64)
   })
 })
 

@@ -20,6 +20,11 @@ function snap(v: number, min: number, max: number, step: number): number {
   return Number(clamped.toFixed(6))
 }
 
+/** range 정의에 맞춰 step으로 스냅하고 min·max로 클램프한다 */
+export function snapValue(def: Extract<ParamDef, { type: 'range' }>, v: number): number {
+  return snap(v, def.min, def.max, def.step)
+}
+
 /** 알 수 없는 키는 버리고, 타입이 맞지 않거나 범위 밖인 값은 기본값 또는 경계값으로 보정한다 */
 export function clampParams(defs: ParamDef[], input: Record<string, unknown>): Params {
   const out = defaultParams(defs)

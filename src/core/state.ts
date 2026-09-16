@@ -63,7 +63,8 @@ export function decodeState(hash: string, resolve: ResolveGenerator, defaults: S
     generator: defaults.generator,
     seed: DEFAULT_SEED,
     params: defaultParams(defaultInfo.params),
-    palette: ensurePaletteLength(defaults.palette, defaultInfo.minColors),
+    // slice로 복사해 App 상태가 PRESETS의 배열을 그대로 참조하지 않게 한다
+    palette: ensurePaletteLength(defaults.palette.slice(), defaultInfo.minColors),
   }
   const raw = hash.replace(/^#/, '')
   if (!raw) return base

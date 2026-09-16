@@ -1,3 +1,4 @@
+/** 0..255. parseHex는 정수를 반환하지만 hsl/hsv 변환은 소수를 그대로 반환한다(왕복 정확도). 반올림은 toHex와 UI 표시에서만 한다 */
 export type Rgb = { r: number; g: number; b: number }
 export type Hsl = { h: number; s: number; l: number }
 export type Hsv = { h: number; s: number; v: number }
