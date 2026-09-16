@@ -88,8 +88,8 @@ is the tile that gets exported.
   Neon Op, Candy Weave. **Randomize colors** builds a new one instead: hues spaced by the golden
   angle (137.5°), saturation 55–85, value 35–90, and a background that is either very light or
   very dark
-- **Randomize with locks** — **Randomize** in the top bar changes the seed, every parameter and
-  every unlocked colour in one press, and never changes the generator. Anything you touched is
+- **Randomize with locks** — **Randomize** in the top bar changes every unlocked value: the seed,
+  every parameter and every colour in one press, and never changes the generator. Anything you touched is
   locked automatically; a lock icon sits on every control and a lock badge on every swatch, so you
   can pin or release anything by hand; and a dice button next to each value rerolls just that one
 - **Light and dark themes** — light by default, with a sun / moon button in the top bar. The choice
@@ -332,8 +332,8 @@ PNG·JPG로 내려받습니다.
 - **프리셋 팔레트 8종** — Missoni Blue, Walala, Underground, Boogie, Poppy Field, Bauhaus,
   Neon Op, Candy Weave. **Randomize colors**는 대신 새 팔레트를 만듭니다. 색상은 황금각(137.5°)
   간격, 채도 55–85, 명도 35–90, 배경은 아주 밝거나 아주 어둡게
-- **Randomize와 잠금** — 상단 바의 **Randomize**는 시드, 모든 매개변수, 잠기지 않은 모든 색을
-  한 번에 바꾸고 생성기는 절대 바꾸지 않습니다. 한 번이라도 손댄 값은 자동으로 잠기고, 모든
+- **Randomize와 잠금** — 상단 바의 **Randomize**는 잠기지 않은 모든 값(시드, 모든 매개변수,
+  모든 색)을 한 번에 바꾸고 생성기는 절대 바꾸지 않습니다. 한 번이라도 손댄 값은 자동으로 잠기고, 모든
   컨트롤에는 자물쇠 아이콘이, 모든 스와치에는 자물쇠 배지가 있어 직접 잠그고 풀 수 있으며,
   값마다 붙은 주사위 버튼은 그 값 하나만 다시 뽑습니다
 - **라이트·다크 테마** — 기본은 라이트이고 상단 바의 해/달 버튼으로 바꿉니다. 선택은 이
