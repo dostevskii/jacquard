@@ -1,6 +1,6 @@
 import type { Scene } from '../core/scene'
 import type { TilePx } from './canvas'
-import { tilePixelSize } from './canvas'
+import { renderFill, renderTile, tilePixelSize } from './canvas'
 
 export type ExportFormat = 'png' | 'jpg'
 export type ExportMode = 'tile' | 'canvas'
@@ -39,4 +39,41 @@ export function exportFilename(generator: string, seed: number, format: ExportFo
 
 export function mimeOf(format: ExportFormat): string {
   return format === 'png' ? 'image/png' : 'image/jpeg'
+}
+
+/** 설정대로 오프스크린 캔버스에 렌더한다. 크기 상한을 넘으면 DOM을 만들기 전에 throw */
+export function renderForExport(scene: Scene, settings: ExportSettings): HTMLCanvasElement {
+  const size = outputSize(scene, settings)
+  if (exceedsLimit(size)) throw new Error(`Output size ${size.w} × ${size.h} exceeds the ${MAX_DIM}px limit`)
+  const canvas = document.createElement('canvas')
+  canvas.width = size.w
+  canvas.height = size.h
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('2D canvas context is unavailable')
+  if (settings.mode === 'tile') renderTile(scene, size, ctx)
+  else renderFill(scene, tilePixelSize(scene, settings.scale), ctx, size.w, size.h)
+  return canvas
+}
+
+export function canvasToBlob(canvas: HTMLCanvasElement, format: ExportFormat): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error('Encoding failed'))), mimeOf(format), 0.92)
+  })
+}
+
+export function downloadBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+export async function exportImage(scene: Scene, generator: string, seed: number, settings: ExportSettings): Promise<void> {
+  const canvas = renderForExport(scene, settings)
+  const blob = await canvasToBlob(canvas, settings.format)
+  downloadBlob(blob, exportFilename(generator, seed, settings.format))
 }

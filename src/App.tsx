@@ -10,6 +10,7 @@ import { tilePixelSize } from './render/canvas'
 import { TopBar } from './ui/TopBar'
 import { ControlPanel } from './ui/ControlPanel'
 import { PalettePanel } from './ui/PalettePanel'
+import { ExportDialog } from './ui/ExportDialog'
 import { Preview } from './ui/Preview'
 import type { ViewMode } from './ui/Preview'
 
@@ -24,6 +25,7 @@ export default function App() {
   )
   const [view, setView] = useState<ViewMode>('fill')
   const [scale, setScale] = useState(1)
+  const [exportOpen, setExportOpen] = useState(false)
 
   const generator = getGenerator(pattern.generator) ?? GENERATORS[0]
   const scene = useMemo(() => generateScene(pattern), [pattern])
@@ -60,7 +62,7 @@ export default function App() {
         onSeedChange={(seed) => setPattern((p) => ({ ...p, seed }))}
         onRandomSeed={() => setPattern((p) => ({ ...p, seed: randomSeed() }))}
         onCopyLink={() => navigator.clipboard.writeText(window.location.href)}
-        onExport={() => {}}
+        onExport={() => setExportOpen(true)}
       />
       <div className="body">
         <ControlPanel generator={generator} params={pattern.params} onParamChange={setParam} scene={scene} tilePx={tilePx}>
@@ -72,6 +74,14 @@ export default function App() {
         </ControlPanel>
         <Preview scene={scene} view={view} scale={scale} onViewChange={setView} onScaleChange={setScale} />
       </div>
+      <ExportDialog
+        open={exportOpen}
+        scene={scene}
+        generator={pattern.generator}
+        seed={pattern.seed}
+        previewScale={scale}
+        onClose={() => setExportOpen(false)}
+      />
     </div>
   )
 }

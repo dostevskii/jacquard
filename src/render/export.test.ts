@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { Scene } from '../core/scene'
-import { outputSize, exceedsLimit, exportFilename, mimeOf, MAX_DIM, SIZE_PRESETS } from './export'
+import { outputSize, exceedsLimit, exportFilename, mimeOf, renderForExport, MAX_DIM, SIZE_PRESETS } from './export'
 import { tilePixelSize } from './canvas'
 
 const scene: Scene = { width: 300, height: 200, background: '#000000', shapes: [] }
@@ -35,5 +35,13 @@ describe('filename / mime', () => {
     expect(exportFilename('isoCubes', 1, 'jpg')).toBe('jacquard-isoCubes-1.jpg')
     expect(mimeOf('png')).toBe('image/png')
     expect(mimeOf('jpg')).toBe('image/jpeg')
+  })
+})
+
+describe('renderForExport (node: DOM 없음)', () => {
+  it('throws before touching the DOM when the size exceeds the limit', () => {
+    expect(() =>
+      renderForExport(scene, { format: 'png', mode: 'canvas', scale: 1, width: MAX_DIM + 1, height: 100 }),
+    ).toThrow(/8192/)
   })
 })
