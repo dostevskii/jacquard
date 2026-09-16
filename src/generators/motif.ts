@@ -35,7 +35,7 @@ function buildMotif(size: number, density: number, symmetry: string, smooth: num
         if (y < size - 1 && grid[y + 1][x]) n++
         if (x > 0 && grid[y][x - 1]) n++
         if (x < size - 1 && grid[y][x + 1]) n++
-        if (n >= 2) next[y][x] = true
+        if (n >= 3) next[y][x] = true
       }
     }
     for (let y = 0; y < size; y++) grid[y] = next[y]
@@ -51,7 +51,7 @@ export const motif: GeneratorDef = {
   params: [
     { type: 'range', key: 'cell', label: 'Cell size', min: 4, max: 32, step: 1, default: 10 },
     { type: 'range', key: 'size', label: 'Motif size', min: 7, max: 31, step: 2, default: 15 },
-    { type: 'range', key: 'density', label: 'Density', min: 0.1, max: 0.6, step: 0.05, default: 0.3 },
+    { type: 'range', key: 'density', label: 'Density', min: 0.1, max: 0.6, step: 0.05, default: 0.25 },
     {
       type: 'select', key: 'symmetry', label: 'Symmetry', default: 'quad',
       options: [
@@ -87,7 +87,7 @@ export const motif: GeneratorDef = {
     const shapes: Shape[] = []
     for (let r = 0; r < rowsInTile; r++) {
       const oy = r * rowH
-      const ox = stagger && r === 1 ? unitW / 2 : 0
+      const ox = stagger && r === 1 ? Math.floor((size + spacing) / 2) * cell : 0
       const mx = ox + (spacing * cell) / 2
       const my = oy + (spacing * cell) / 2
       for (let y = 0; y < size; y++) {

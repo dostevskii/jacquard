@@ -47,6 +47,33 @@ describe('motif', () => {
     for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) if (base[y][x]) expect(smoothed[y][x]).toBe(true)
   })
 
+  it('smoothing only fills cells with at least three filled neighbours', () => {
+    const size = 11, cell = 10
+    const base = motifGrid(size, cell, run('motif', { cell, size, spacing: 0, bandRows: 0, smooth: 0, density: 0.3 }), PALETTE8[1])
+    const once = motifGrid(size, cell, run('motif', { cell, size, spacing: 0, bandRows: 0, smooth: 1, density: 0.3 }), PALETTE8[1])
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        if (base[y][x] || !once[y][x]) continue
+        let n = 0
+        if (y > 0 && base[y - 1][x]) n++
+        if (y < size - 1 && base[y + 1][x]) n++
+        if (x > 0 && base[y][x - 1]) n++
+        if (x < size - 1 && base[y][x + 1]) n++
+        expect(n).toBeGreaterThanOrEqual(3)
+      }
+    }
+  })
+
+  it('stagger keeps every rect on the cell grid', () => {
+    const cell = 10
+    const s = run('motif', { cell, size: 15, spacing: 2, bandRows: 2, stagger: true })
+    for (const sh of s.shapes) {
+      if (sh.kind !== 'rect') continue
+      expect(Math.abs(sh.x / cell - Math.round(sh.x / cell))).toBeLessThan(1e-6)
+      expect(Math.abs(sh.y / cell - Math.round(sh.y / cell))).toBeLessThan(1e-6)
+    }
+  })
+
   it('band rows use two alternating colors across the full width', () => {
     const s = run('motif', { cell: 10, size: 7, spacing: 0, bandRows: 2, stagger: false })
     const band = s.shapes.filter((sh) => sh.kind === 'rect' && sh.y >= 70)
