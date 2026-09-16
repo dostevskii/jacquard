@@ -468,6 +468,7 @@ export function mix(a: string, b: string, t?: number): string; // RGB 선형 혼
 - 브랜치는 `main` 하나. 각 단계 종료마다 테스트·린트·빌드 통과 후 커밋.
 - GitHub: `gh repo create dostevskii/jacquard --private --source=. --push`는 설계 문서 첫 커밋 직후 실행한다.
 - 배포는 7단계에서 wrangler 로그인 상태를 확인한 뒤 실행하고, 배포 URL을 README와 About에 기록한다.
+- 프로덕션 URL: https://jacquard-aou.pages.dev (2026-09-16 배포)
 
 ## 10. 결정 기록
 
