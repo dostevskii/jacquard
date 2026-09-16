@@ -5,6 +5,7 @@
 - 역할 분담: 설계·계획은 Claude Fable, 구현은 Claude Opus가 별도 세션에서 수행한다.
 - 저장소: `~/jacquard` (로컬), `github.com/dostevskii/jacquard` (비공개)
 - 라이선스: MIT (Copyright (c) 2026 dostevskii)
+- 후속 설계서: `2026-09-17-jacquard-randomize-locks-theme-design.md` (v1.1: 전역/개별 랜덤, 잠금, 라이트 테마). §4.7·§6.3·§7.1~7.2와 충돌하면 후속 설계서가 우선한다.
 
 ## 1. 목적
 
