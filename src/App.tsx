@@ -111,8 +111,9 @@ export default function App() {
         >
           <PalettePanel
             palette={pattern.palette}
+            locks={pattern.locks}
             minColors={generator.minColors}
-            onChange={(palette) => setPattern((p) => ({ ...p, palette }))}
+            onChange={(palette, locks) => setPattern((p) => ({ ...p, palette, locks }))}
           />
         </ControlPanel>
         <Preview scene={scene} view={view} scale={scale} onViewChange={setView} onScaleChange={setScale} />
