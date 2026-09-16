@@ -83,7 +83,7 @@ body { background: var(--bg); color: var(--text); }
 .btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
 .seed { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
 .seed input { width: 120px; }
-.btn.randomize { display: inline-flex; align-items: center; gap: 6px; }
+.btn.randomize, .btn.unlock-all { display: inline-flex; align-items: center; gap: 6px; }
 .seed.locked { color: var(--text); }
 .info { color: var(--muted); margin-bottom: 4px; }
 .mono { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 48px; text-align: right; }
@@ -137,7 +137,7 @@ body { background: var(--bg); color: var(--text); }
 .swatch-lock {
   position: absolute; top: -6px; right: -6px; width: 15px; height: 15px; border-radius: 50%;
   border: 1px solid var(--border); background: var(--panel); color: var(--muted); padding: 0;
-  display: inline-flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0;
+  display: inline-flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0.35;
 }
 .swatch:hover .swatch-lock, .swatch-lock.on { opacity: 1; }
 .swatch-lock:focus-visible { opacity: 1; }

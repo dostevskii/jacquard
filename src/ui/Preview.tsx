@@ -92,6 +92,7 @@ export function Preview({ scene, view, scale, onViewChange, onScaleChange, theme
         ctx.restore()
       }
     }
+    // rAF 한 프레임 뒤에 그리므로 App의 applyTheme 효과가 먼저 반영된 뒤 CSS 변수를 읽는다 — 동기 호출로 바꾸지 말 것
     const schedule = () => {
       cancelAnimationFrame(raf)
       raf = requestAnimationFrame(draw)

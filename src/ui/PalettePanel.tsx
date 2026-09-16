@@ -37,13 +37,13 @@ export function PalettePanel({ palette, locks, minColors, onChange }: Props) {
 
   const fresh = () => mulberry32(randomSeed())
 
-  // 색 편집기로 바꾼 색은 사용자가 고른 것이므로 그 스와치를 잠근다
+  // 색 편집기로 바꾼 색은 사용자가 고른 것이므로 그 스와치를 잠근다. 색이 그대로면 잠그지 않는다
   const edit = (next: Hsv) => {
     const hex = toHex(hsvToRgb(next))
     setEdited({ index: sel, hex, hsv: next })
     const p = palette.slice()
     p[sel] = hex
-    onChange(p, lockSwatch(locks, sel))
+    onChange(p, hex === palette[sel] ? locks : lockSwatch(locks, sel))
   }
   const move = (dir: -1 | 1) => {
     const j = sel + dir
@@ -93,7 +93,13 @@ export function PalettePanel({ palette, locks, minColors, onChange }: Props) {
           const locked = locks.palette.includes(i)
           return (
             <div key={i} className={`swatch${i === sel ? ' on' : ''}${locked ? ' locked' : ''}`} style={{ background: c }} title={c}>
-              <button type="button" className="swatch-pick" aria-label={`Select color ${i + 1}`} onClick={() => setSelected(i)} />
+              <button
+                type="button"
+                className="swatch-pick"
+                aria-pressed={i === sel}
+                aria-label={`Select color ${i + 1} (${c})`}
+                onClick={() => setSelected(i)}
+              />
               {i === 0 ? <span className="swatch-tag">BG</span> : null}
               <button
                 type="button"

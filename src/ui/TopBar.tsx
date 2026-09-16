@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { GeneratorDef } from '../generators/types'
 import { MAX_SEED } from '../core/prng'
 import { DiceButton, DiceIcon } from './DiceButton'
-import { LockButton } from './LockButton'
+import { LockButton, LockIcon } from './LockButton'
 import type { Theme } from './theme'
 
 interface Props {
@@ -15,6 +15,8 @@ interface Props {
   onRandomSeed(): void
   onToggleSeedLock(): void
   onRandomizeAll(): void
+  onUnlockAll(): void
+  anyLocked: boolean
   onCopyLink(): Promise<void> | void
   onExport(): void
   theme: Theme
@@ -84,6 +86,9 @@ export function TopBar(p: Props) {
       <LockButton locked={p.seedLocked} onToggle={p.onToggleSeedLock} label="the seed" />
       <button type="button" className="btn randomize" title="Randomize everything that is not locked" onClick={p.onRandomizeAll}>
         <DiceIcon /> Randomize
+      </button>
+      <button type="button" className="btn unlock-all" title="Unlock every value, color and the seed" onClick={p.onUnlockAll} disabled={!p.anyLocked}>
+        <LockIcon locked={false} /> Unlock all
       </button>
       <div className="spacer" />
       <button

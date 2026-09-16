@@ -4,7 +4,7 @@ import { decodeState, encodeState } from './core/state'
 import type { ParamValue } from './core/params'
 import { defaultParams } from './core/params'
 import { DEFAULT_PALETTE, ensurePaletteLength } from './core/palettes'
-import { clampSwatchLocks, clearParamLocks, lockParam, toggleParamLock, toggleSeedLock } from './core/locks'
+import { clampSwatchLocks, clearParamLocks, emptyLocks, lockParam, toggleParamLock, toggleSeedLock } from './core/locks'
 import { randomizeAll, randomParamValue } from './core/random'
 import { mulberry32, randomSeed } from './core/prng'
 import { DEFAULT_GENERATOR_ID, GENERATORS, generateScene, getGenerator } from './generators'
@@ -76,6 +76,9 @@ export default function App() {
   // 전역 Randomize: 잠기지 않은 시드·매개변수·스와치만
   const randomizeEverything = () =>
     setPattern((p) => randomizeAll(p, getGenerator(p.generator)?.params ?? [], mulberry32(randomSeed())))
+  // 자동 잠금이 쌓여 Randomize가 아무것도 바꾸지 못할 때 한 번에 푼다
+  const anyLocked = pattern.locks.seed || pattern.locks.params.length > 0 || pattern.locks.palette.length > 0
+  const unlockAll = () => setPattern((p) => ({ ...p, locks: emptyLocks() }))
 
   const selectGenerator = (id: string) => {
     const g = getGenerator(id)
@@ -105,6 +108,8 @@ export default function App() {
         onRandomSeed={randomizeSeedOnly}
         onToggleSeedLock={onToggleSeedLock}
         onRandomizeAll={randomizeEverything}
+        onUnlockAll={unlockAll}
+        anyLocked={anyLocked}
         onCopyLink={() => navigator.clipboard.writeText(window.location.href)}
         onExport={() => setExportOpen(true)}
         theme={theme}

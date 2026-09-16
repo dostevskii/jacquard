@@ -48,6 +48,8 @@ export function ColorInputs({ hsv, onChange }: Props) {
   const fromRgb = (patch: Partial<Rgb>) => onChange(keepHue(rgbToHsv({ ...rgb, ...patch }), hsv))
   const fromHsl = (patch: Partial<Hsl>) => onChange(keepHue(rgbToHsv(hslToRgb({ ...hsl, ...patch })), hsv))
   const commitHex = () => {
+    // 편집하지 않은 채 blur/Enter만 한 경우에는 색을 다시 확정하지 않는다(의도치 않은 자동 잠금 방지)
+    if (hexDraft === null) return
     const p = parseHex(hexText)
     setHexDraft(null)
     if (p) onChange(keepHue(rgbToHsv(p), hsv))
