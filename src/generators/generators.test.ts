@@ -18,6 +18,7 @@ interface Case {
 const CASES: Case[] = [
   { id: 'stripes', rngParams: { colorMode: 'random' } },
   { id: 'plaid', rngParams: { blend: 'weave' }, mixedColors: true },
+  { id: 'zigzag', rngParams: { colorMode: 'random' } },
 ]
 
 describe('registry', () => {
