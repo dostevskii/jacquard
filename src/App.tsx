@@ -9,6 +9,7 @@ import { DEFAULT_GENERATOR_ID, GENERATORS, generateScene, getGenerator } from '.
 import { tilePixelSize } from './render/canvas'
 import { TopBar } from './ui/TopBar'
 import { ControlPanel } from './ui/ControlPanel'
+import { PalettePanel } from './ui/PalettePanel'
 import { Preview } from './ui/Preview'
 import type { ViewMode } from './ui/Preview'
 
@@ -62,7 +63,13 @@ export default function App() {
         onExport={() => {}}
       />
       <div className="body">
-        <ControlPanel generator={generator} params={pattern.params} onParamChange={setParam} scene={scene} tilePx={tilePx} />
+        <ControlPanel generator={generator} params={pattern.params} onParamChange={setParam} scene={scene} tilePx={tilePx}>
+          <PalettePanel
+            palette={pattern.palette}
+            minColors={generator.minColors}
+            onChange={(palette) => setPattern((p) => ({ ...p, palette }))}
+          />
+        </ControlPanel>
         <Preview scene={scene} view={view} scale={scale} onViewChange={setView} onScaleChange={setScale} />
       </div>
     </div>
