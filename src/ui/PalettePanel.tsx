@@ -44,6 +44,8 @@ export function PalettePanel({ palette, minColors, onChange }: Props) {
     p[j] = tmp
     onChange(p)
     setSelected(j)
+    // 고른 색이 j로 따라가므로 편집 캐시의 인덱스도 옮겨 hex로 복원되지 않는 색상 정보를 지킨다
+    setEdited((e) => ({ ...e, index: j }))
   }
   const add = () => {
     if (palette.length >= MAX_COLORS) return
@@ -58,7 +60,8 @@ export function PalettePanel({ palette, minColors, onChange }: Props) {
   const applyPreset = (name: string) => {
     const preset = PRESETS.find((p) => p.name === name)
     if (!preset) return
-    onChange(ensurePaletteLength(preset.colors, minColors))
+    // ensurePaletteLength는 길이가 충분하면 받은 배열을 그대로 돌려주므로 프리셋 배열 별칭을 막는다
+    onChange(ensurePaletteLength(preset.colors.slice(), minColors))
     setSelected(0)
   }
   const shuffle = () => onChange(randomPalette(palette.length))
@@ -69,7 +72,7 @@ export function PalettePanel({ palette, minColors, onChange }: Props) {
       <div className="swatches">
         {palette.map((c, i) => (
           <button
-            key={`${i}-${c}`}
+            key={i}
             type="button"
             className={`swatch${i === sel ? ' on' : ''}`}
             style={{ background: c }}

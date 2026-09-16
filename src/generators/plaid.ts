@@ -40,14 +40,24 @@ export const plaid: GeneratorDef = {
     const makeSett = (): Stripe[] => {
       const half: Stripe[] = []
       let prev: number | undefined
-      for (let i = 0; i < sett; i++) {
-        const ci = pickFg(palette, rng, prev)
+      // 비대칭 세트는 줄 수가 홀수면 alternate 교차가 타일 경계에서 어긋나므로 한 줄을 더 만든다
+      const count = symmetric ? sett : sett + (sett % 2)
+      for (let i = 0; i < count; i++) {
+        let ci = pickFg(palette, rng, prev)
+        // 비대칭 세트의 마지막 줄이 첫 줄과 같은 색이면 이음새에서 두 줄이 한 줄로 보인다
+        if (!symmetric && i > 0 && i === count - 1) {
+          for (let t = 0; t < 8 && fg(palette, ci) === half[0].color; t++) ci = pickFg(palette, rng, prev)
+        }
         prev = ci
         half.push({ w: rng.int(1, maxStripe), color: fg(palette, ci) })
       }
-      if (!symmetric) return half
       // 양 끝(pivot) 줄은 한 번만 두고 가운데를 거울 복사한다: s1..sn, s(n-1)..s2
-      return half.concat(half.slice(1, -1).reverse())
+      const arr = symmetric ? half.concat(half.slice(1, -1).reverse()) : half
+      // 세트 총 셀 수가 홀수면 weave 체커가 타일 경계에서 어긋난다.
+      // pivot(index 0)은 대칭 세트에서도 한 번만 나오므로 폭을 키워도 회문이 깨지지 않는다
+      const tot = arr.reduce((a, b) => a + b.w, 0)
+      if (tot % 2 === 1) arr[0].w += 1
+      return arr
     }
 
     const warp = makeSett()

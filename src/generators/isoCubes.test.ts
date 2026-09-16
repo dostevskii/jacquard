@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { polygonArea } from '../core/scene'
+import { polygonArea, shapeBounds } from '../core/scene'
 import { run, PALETTE8, colorsOf } from './testUtils'
 
 const polyArea = (s: ReturnType<typeof run>) =>
@@ -22,6 +22,18 @@ describe('isoCubes', () => {
   it('polygons cover the tile exactly when gap is 0', () => {
     const s = run('isoCubes', { gap: 0 })
     expect(polyArea(s)).toBeCloseTo(s.width * s.height, 3)
+  })
+
+  it('the smallest grid still covers the tile and stays inside it', () => {
+    const s = run('isoCubes', { cols: 1, rows: 1, gap: 0 })
+    expect(polyArea(s)).toBeCloseTo(s.width * s.height, 3)
+    for (const sh of s.shapes) {
+      const b = shapeBounds(sh)
+      expect(b.x0).toBeGreaterThanOrEqual(-1e-6)
+      expect(b.y0).toBeGreaterThanOrEqual(-1e-6)
+      expect(b.x1).toBeLessThanOrEqual(s.width + 1e-6)
+      expect(b.y1).toBeLessThanOrEqual(s.height + 1e-6)
+    }
   })
 
   it('gap leaves background showing', () => {

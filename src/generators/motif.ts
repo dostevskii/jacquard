@@ -75,8 +75,10 @@ export const motif: GeneratorDef = {
     const stagger = bool(params, 'stagger')
 
     const grid = buildMotif(size, density, symmetry, smooth, rng)
-    const unitW = (size + spacing) * cell
-    const rowH = (size + spacing + bandRows) * cell
+    // 띠 체커가 (i + j) % 2이므로 타일 폭 셀 수를 짝수로 맞춰야 세로 이음새에서 같은 색이 붙지 않는다
+    const across = size + spacing + ((size + spacing) % 2)
+    const unitW = across * cell
+    const rowH = (across + bandRows) * cell
     const rowsInTile = stagger ? 2 : 1
     const width = unitW
     const height = rowH * rowsInTile
@@ -87,17 +89,17 @@ export const motif: GeneratorDef = {
     const shapes: Shape[] = []
     for (let r = 0; r < rowsInTile; r++) {
       const oy = r * rowH
-      const ox = stagger && r === 1 ? Math.floor((size + spacing) / 2) * cell : 0
-      const mx = ox + (spacing * cell) / 2
-      const my = oy + (spacing * cell) / 2
+      const ox = stagger && r === 1 ? Math.floor(across / 2) * cell : 0
+      // 남는 여백을 셀 단위로 나눠 모티프를 가운데 둔다(홀수 여백이어도 격자에서 벗어나지 않는다)
+      const mx = ox + Math.floor((across - size) / 2) * cell
+      const my = oy + Math.floor((across - size) / 2) * cell
       for (let y = 0; y < size; y++) {
         for (let x = 0; x < size; x++) {
           if (grid[y][x]) shapes.push(rect(mx + x * cell, my + y * cell, cell, cell, motifColor))
         }
       }
       if (bandRows > 0) {
-        const by = oy + (size + spacing) * cell
-        const across = size + spacing
+        const by = oy + across * cell
         for (let j = 0; j < bandRows; j++) {
           for (let i = 0; i < across; i++) {
             shapes.push(rect(i * cell, by + j * cell, cell, cell, (i + j) % 2 === 0 ? bandA : bandB))

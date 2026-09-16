@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
 import type { Scene } from '../core/scene'
-import { outputSize, exceedsLimit, exportFilename, mimeOf, renderForExport, MAX_DIM, SIZE_PRESETS } from './export'
+import { outputSize, exceedsLimit, exportFilename, mimeOf, renderForExport, clampTileScale, MAX_DIM, SIZE_PRESETS } from './export'
 import { tilePixelSize } from './canvas'
 
 const scene: Scene = { width: 300, height: 200, background: '#000000', shapes: [] }
@@ -26,6 +26,15 @@ describe('outputSize / exceedsLimit', () => {
   it('presets are within the limit', () => {
     expect(SIZE_PRESETS.length).toBeGreaterThanOrEqual(5)
     for (const p of SIZE_PRESETS) expect(exceedsLimit({ w: p.w, h: p.h })).toBe(false)
+  })
+})
+
+describe('clampTileScale', () => {
+  it('keeps small scales and clamps large ones to MAX_DIM per side', () => {
+    const wide: Scene = { width: 12800, height: 800, background: '#000000', shapes: [] }
+    expect(clampTileScale(scene, 2)).toBe(2)
+    expect(clampTileScale(wide, 4)).toBeCloseTo(MAX_DIM / 12800)
+    expect(Math.round(wide.width * clampTileScale(wide, 4))).toBe(MAX_DIM)
   })
 })
 

@@ -37,6 +37,13 @@ describe('gradientBars', () => {
     }
   })
 
+  it('pairs mode reaches every foreground color and carries over to the next column', () => {
+    const palette = ['#000000', '#ff0000', '#00ff00', '#0000ff', '#ffff00']
+    const s = run('gradientBars', { columns: 4, barWidth: 50, length: 200, bands: 1, colorMode: 'pairs' }, palette)
+    const firstStops = s.shapes.map((sh) => (sh.fill.type === 'linear' ? sh.fill.stops[0].color : ''))
+    expect(new Set(firstStops)).toEqual(new Set(palette.slice(1)))
+  })
+
   it('mirrorX makes the tile left-right symmetric', () => {
     const s = run('gradientBars', { columns: 6, barWidth: 50, length: 200, bands: 1, mirrorX: true, mirrorY: false })
     const key = (a: number, b: number, c: number, d: number) => [a, b, c, d].map((v) => v.toFixed(6)).join(',')
@@ -51,5 +58,14 @@ describe('gradientBars', () => {
     const s = run('gradientBars')
     const area = s.shapes.reduce((a, sh) => a + (sh.kind === 'rect' ? sh.w * sh.h : 0), 0)
     expect(area).toBeCloseTo(s.width * s.height)
+  })
+
+  it('still covers the tile with segments, stagger, negative step and both mirrors', () => {
+    const area = (s: ReturnType<typeof run>) =>
+      s.shapes.reduce((a, sh) => a + (sh.kind === 'rect' ? sh.w * sh.h : 0), 0)
+    const mirrored = run('gradientBars', { bands: 4, stagger: 0.35, step: -0.3, mirrorX: true, mirrorY: true })
+    expect(area(mirrored)).toBeCloseTo(mirrored.width * mirrored.height)
+    const horizontal = run('gradientBars', { direction: 'horizontal', bands: 3 })
+    expect(area(horizontal)).toBeCloseTo(horizontal.width * horizontal.height)
   })
 })

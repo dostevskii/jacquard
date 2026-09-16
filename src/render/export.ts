@@ -33,6 +33,12 @@ export function exceedsLimit(size: TilePx): boolean {
   return size.w > MAX_DIM || size.h > MAX_DIM || size.w < 1 || size.h < 1
 }
 
+/** 타일 한 변이 MAX_DIM을 넘지 않도록 배율을 낮춘다 */
+export function clampTileScale(scene: Scene, scale: number): number {
+  const maxScale = Math.min(MAX_DIM / scene.width, MAX_DIM / scene.height)
+  return Math.min(scale, maxScale)
+}
+
 export function exportFilename(generator: string, seed: number, format: ExportFormat): string {
   return `jacquard-${generator}-${seed}.${format}`
 }
@@ -52,7 +58,7 @@ export function renderForExport(scene: Scene, settings: ExportSettings): HTMLCan
   if (!ctx) throw new Error('2D canvas context is unavailable')
   if (settings.mode === 'tile') renderTile(scene, size, ctx)
   // renderFill이 false면 빈 캔버스가 그대로 인코딩되므로, 대화상자 오류 줄에 드러나도록 throw한다
-  else if (!renderFill(scene, tilePixelSize(scene, settings.scale), ctx, size.w, size.h))
+  else if (!renderFill(scene, tilePixelSize(scene, clampTileScale(scene, settings.scale)), ctx, size.w, size.h))
     throw new Error('Tile rendering failed')
   return canvas
 }

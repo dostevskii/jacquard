@@ -15,9 +15,10 @@ function motifGrid(size: number, cell: number, scene: Scene, color: string): boo
 }
 
 describe('motif', () => {
+  // 타일 폭 셀 수(across)는 size + spacing을 짝수로 올린 값이다: 9 + 2 = 11 → 12
   it('tile size follows size, spacing, bandRows and stagger', () => {
-    expect(run('motif', { cell: 10, size: 9, spacing: 2, bandRows: 3, stagger: false })).toMatchObject({ width: 110, height: 140 })
-    expect(run('motif', { cell: 10, size: 9, spacing: 2, bandRows: 3, stagger: true })).toMatchObject({ width: 110, height: 280 })
+    expect(run('motif', { cell: 10, size: 9, spacing: 2, bandRows: 3, stagger: false })).toMatchObject({ width: 120, height: 150 })
+    expect(run('motif', { cell: 10, size: 9, spacing: 2, bandRows: 3, stagger: true })).toMatchObject({ width: 120, height: 300 })
   })
 
   it('quad symmetry mirrors horizontally and vertically', () => {
@@ -75,10 +76,23 @@ describe('motif', () => {
   })
 
   it('band rows use two alternating colors across the full width', () => {
+    // size 7 + spacing 0 = 7(홀수) → across 8
     const s = run('motif', { cell: 10, size: 7, spacing: 0, bandRows: 2, stagger: false })
     const band = s.shapes.filter((sh) => sh.kind === 'rect' && sh.y >= 70)
-    expect(band).toHaveLength(7 * 2)
+    expect(band).toHaveLength(8 * 2)
     const colors = new Set(band.map((sh) => (sh.fill.type === 'solid' ? sh.fill.color : '')))
     expect(colors).toEqual(new Set([PALETTE8[2], PALETTE8[3]]))
+  })
+
+  it('band checker continues across the vertical seam (first and last band cells differ)', () => {
+    for (const spacing of [0, 1, 2, 3]) {
+      const s = run('motif', { cell: 10, size: 9, spacing, bandRows: 1, stagger: false })
+      const band = s.shapes.filter((sh) => sh.kind === 'rect' && sh.y >= s.height - 10)
+      const xs = band.map((sh) => (sh.kind === 'rect' ? sh.x : 0))
+      const first = band[xs.indexOf(Math.min(...xs))]
+      const last = band[xs.indexOf(Math.max(...xs))]
+      expect(first.fill.type === 'solid' && last.fill.type === 'solid' && first.fill.color !== last.fill.color).toBe(true)
+      expect((s.width / 10) % 2).toBe(0)
+    }
   })
 })

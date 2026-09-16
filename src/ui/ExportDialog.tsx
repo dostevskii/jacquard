@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import type { Scene } from '../core/scene'
 import type { ExportFormat, ExportMode, ExportSettings } from '../render/export'
-import { MAX_DIM, SIZE_PRESETS, exceedsLimit, exportImage, outputSize } from '../render/export'
+import { MAX_DIM, SIZE_PRESETS, clampTileScale, exceedsLimit, exportImage, outputSize } from '../render/export'
 
 interface Props {
   open: boolean
@@ -27,6 +27,8 @@ export function ExportDialog({ open, scene, generator, seed, previewScale, onClo
   const settings: ExportSettings = { format, mode, scale: mode === 'tile' ? scale : previewScale, width, height }
   const size = outputSize(scene, settings)
   const tooBig = exceedsLimit(size)
+  // canvas 모드의 반복 타일은 MAX_DIM 안으로 낮춰 그리므로 안내도 같은 배율로 표시한다
+  const tileScale = clampTileScale(scene, previewScale)
 
   const run = async () => {
     setBusy(true)
@@ -121,7 +123,10 @@ export function ExportDialog({ open, scene, generator, seed, previewScale, onClo
               <label className="field"><span>W</span>{numberInput(width, setWidth)}</label>
               <label className="field"><span>H</span>{numberInput(height, setHeight)}</label>
             </div>
-            <div className="info">Tile scale follows the preview: {previewScale.toFixed(2)}× ({Math.round(scene.width * previewScale)} × {Math.round(scene.height * previewScale)} px per tile)</div>
+            <div className="info">
+              Tile scale follows the preview: {tileScale.toFixed(2)}× ({Math.round(scene.width * tileScale)} × {Math.round(scene.height * tileScale)} px per tile)
+              {tileScale < previewScale ? ` (clamped to ${MAX_DIM}px)` : ''}
+            </div>
           </>
         )}
 

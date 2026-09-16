@@ -22,6 +22,11 @@ describe('triangles', () => {
     }
   })
 
+  it('covers the tile exactly with a vertical odd-column grid', () => {
+    const s = run('triangles', { orientation: 'vertical', cols: 5, rows: 2 })
+    expect(polyArea(s)).toBeCloseTo(s.width * s.height, 3)
+  })
+
   it('checker uses exactly two foreground colors', () => {
     expect(new Set(colorsOf(run('triangles', { rule: 'checker' })))).toEqual(new Set([PALETTE8[1], PALETTE8[2]]))
   })

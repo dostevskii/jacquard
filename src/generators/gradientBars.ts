@@ -74,8 +74,9 @@ export const gradientBars: GeneratorDef = {
         a = fg(palette, ai)
         b = fg(palette, bi)
       } else {
-        a = fg(palette, 2 * i)
-        b = fg(palette, 2 * i + 1)
+        // 한 칸씩 밀어 전경색을 모두 쓰고, 이웃 열의 시작 색이 앞 열의 끝 색으로 이어지게 한다
+        a = fg(palette, i)
+        b = fg(palette, i + 1)
       }
       const phase = (i % 2) * stagger + i * step
       const shift = (phase - Math.floor(phase)) * segLen

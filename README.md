@@ -86,8 +86,9 @@ polygons and linear gradients, the tile you see on screen is the tile that gets 
 - **PNG / JPG export** — *Single tile* renders one tile at a chosen px-per-unit scale;
   *Canvas* fills a fixed size by repeating the tile at the preview scale. Five size presets
   (1080 × 1080, 1920 × 1080, 1080 × 1920, A4 300 dpi 2480 × 3508, A3 300 dpi 3508 × 4961) plus a
-  custom width and height. Anything over **8192 px** on a side is refused before a canvas is
-  allocated. Files come out as `jacquard-<generator>-<seed>.png` / `.jpg`
+  custom width and height. An output over **8192 px** on a side is refused before a canvas is
+  allocated, and in *Canvas* mode the repeating tile's scale is clamped so that the tile itself
+  stays within 8192 px. Files come out as `jacquard-<generator>-<seed>.png` / `.jpg`
 - **URL sharing** — the whole state is base64url JSON in the location hash, rewritten 300 ms after
   your last change. **Copy link** puts the current URL on the clipboard; opening it restores the
   generator, seed, parameters and palette. A link with stale or hand-edited values still loads —
@@ -296,8 +297,9 @@ PNG·JPG로 내려받습니다.
 - **PNG / JPG 내보내기** — *Single tile*은 타일 한 장을 지정한 unit당 px 배율로 렌더하고,
   *Canvas*는 미리보기 배율의 타일을 반복해 정해진 크기를 채웁니다. 크기 프리셋 5종
   (1080 × 1080, 1920 × 1080, 1080 × 1920, A4 300dpi 2480 × 3508, A3 300dpi 3508 × 4961)과
-  직접 입력을 지원하고, 한 변이 **8192px**을 넘으면 캔버스를 만들기 전에 막습니다. 파일명은
-  `jacquard-<생성기>-<시드>.png` / `.jpg`입니다
+  직접 입력을 지원합니다. 출력 한 변이 **8192px**을 넘으면 캔버스를 만들기 전에 막고,
+  *Canvas* 모드에서 반복하는 타일의 배율은 타일 한 변이 8192px 안에 들어오도록 자동으로
+  낮춥니다. 파일명은 `jacquard-<생성기>-<시드>.png` / `.jpg`입니다
 - **URL 공유** — 상태 전체가 URL 해시에 base64url JSON으로 들어가며, 마지막 변경 300ms 뒤에
   갱신됩니다. **Copy link**로 현재 주소를 복사하고, 그 주소를 열면 생성기·시드·매개변수·팔레트가
   복원됩니다. 낡거나 손으로 고친 링크도 열립니다. 모르는 매개변수는 버리고, 숫자는 step에 맞춰
