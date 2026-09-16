@@ -21,6 +21,7 @@ const CASES: Case[] = [
   { id: 'zigzag', rngParams: { colorMode: 'random' } },
   { id: 'motif', rngParams: { density: 0.5 } },
   { id: 'rings', rngParams: { maxRing: 4 } },
+  { id: 'gradientBars', rngParams: { colorMode: 'random' } },
 ]
 
 describe('registry', () => {
