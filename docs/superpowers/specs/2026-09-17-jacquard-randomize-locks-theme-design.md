@@ -33,7 +33,7 @@ export interface LockState {
   params: string[]     // 잠긴 매개변수 키 (현재 생성기의 키만)
   palette: number[]    // 잠긴 스와치 인덱스 (오름차순, 중복 없음)
 }
-export const EMPTY_LOCKS: LockState = { seed: false, params: [], palette: [] }
+export function emptyLocks(): LockState      // 항상 새 객체 { seed: false, params: [], palette: [] } (공유 참조 방지)
 
 export function lockParam(l: LockState, key: string): LockState
 export function toggleParamLock(l: LockState, key: string): LockState
