@@ -965,7 +965,7 @@ export function tileWrap(shapes: Shape[], width: number, height: number): Shape[
 - [ ] **Step 4: 통과 확인**
 
 Run: `npx vitest run src/core/scene.test.ts`
-Expected: PASS (13 tests)
+Expected: PASS (14 tests)
 
 - [ ] **Step 5: 커밋**
 
@@ -1827,7 +1827,7 @@ export function generateScene(state: PatternState): Scene {
 - [ ] **Step 4: 통과 확인**
 
 Run: `npx vitest run src/generators`
-Expected: PASS (registry 3개 + stripes 공통 10개 + stripes 전용 3개). `testUtils.ts`는 `.test.ts`가 아니므로 vitest가 테스트 파일로 수집하지 않는다.
+Expected: PASS (registry 3개 + stripes 공통 9개 + stripes 전용 3개). `testUtils.ts`는 `.test.ts`가 아니므로 vitest가 테스트 파일로 수집하지 않는다.
 
 - [ ] **Step 5: 전체 검증 후 커밋**
 
