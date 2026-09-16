@@ -118,6 +118,7 @@ The left panel is the instrument; the preview to the right is the result.
 | Generator dropdown (top bar) | Switches generator. Parameters reset to that generator's defaults and the palette is kept, padded if the new generator needs more colours |
 | Seed field, `Enter` or blur | Sets the seed (integer, 0 … 4294967295). Out-of-range or non-numeric input is ignored |
 | Randomize (top bar) | Rerolls the seed, every parameter and every colour that is not locked. The generator, the locks themselves and the palette length never change |
+| Unlock all (top bar) | Clears every lock — the seed, every parameter and every colour. Disabled when nothing is locked |
 | Dice next to a value / swatch | Randomizes only that value — one parameter, the seed, or the selected swatch. It never locks anything, and it works on a locked item too |
 | Lock icon / swatch badge | Locks or unlocks that parameter, the seed or that swatch. A locked item keeps its value through **Randomize**, and you can still edit it by hand |
 | Sun / moon | Switches between the light and the dark theme |
@@ -362,6 +363,7 @@ PNG·JPG로 내려받습니다.
 | 생성기 드롭다운(상단 바) | 생성기 전환. 매개변수는 그 생성기의 기본값으로 돌아가고, 팔레트는 유지됩니다(색이 모자라면 채워 넣습니다) |
 | 시드 입력 후 `Enter` 또는 포커스 해제 | 시드 지정(정수 0 … 4294967295). 범위 밖이거나 숫자가 아니면 무시합니다 |
 | Randomize(상단 바) | 잠기지 않은 시드·매개변수·색을 전부 새로 뽑습니다. 생성기, 잠금 자체, 팔레트 길이는 바뀌지 않습니다 |
+| Unlock all(상단 바) | 시드·모든 매개변수·모든 색의 잠금을 전부 풉니다. 잠긴 것이 하나도 없으면 비활성화됩니다 |
 | 값·스와치 옆 주사위 | 그 값 하나만 무작위로 바꿉니다(매개변수 하나, 시드, 또는 선택한 스와치). 잠금은 걸지 않고, 잠긴 항목에도 그대로 동작합니다 |
 | 자물쇠 아이콘 / 스와치 배지 | 그 매개변수·시드·스와치의 잠금을 켜고 끕니다. 잠긴 항목은 **Randomize**에도 값이 유지되며, 직접 고치는 것은 그대로 됩니다 |
 | 해 / 달 | 라이트 테마와 다크 테마를 전환합니다 |

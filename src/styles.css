@@ -84,6 +84,7 @@ body { background: var(--bg); color: var(--text); }
 .seed { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
 .seed input { width: 120px; }
 .btn.randomize, .btn.unlock-all { display: inline-flex; align-items: center; gap: 6px; }
+.btn:disabled { opacity: 0.35; cursor: default; border-color: var(--border); }
 .seed.locked { color: var(--text); }
 .info { color: var(--muted); margin-bottom: 4px; }
 .mono { font-variant-numeric: tabular-nums; color: var(--muted); min-width: 48px; text-align: right; }
