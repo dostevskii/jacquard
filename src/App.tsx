@@ -15,6 +15,8 @@ import { PalettePanel } from './ui/PalettePanel'
 import { ExportDialog } from './ui/ExportDialog'
 import { Preview } from './ui/Preview'
 import type { ViewMode } from './ui/Preview'
+import type { Theme } from './ui/theme'
+import { applyTheme, browserStorage, loadTheme, saveTheme } from './ui/theme'
 
 const resolve = (id: string) => {
   const g = getGenerator(id)
@@ -28,6 +30,7 @@ export default function App() {
   const [view, setView] = useState<ViewMode>('fill')
   const [scale, setScale] = useState(1)
   const [exportOpen, setExportOpen] = useState(false)
+  const [theme, setTheme] = useState<Theme>(() => loadTheme(browserStorage()))
 
   const generator = getGenerator(pattern.generator) ?? GENERATORS[0]
   const scene = useMemo(() => generateScene(pattern), [pattern])
@@ -39,6 +42,13 @@ export default function App() {
     }, 300)
     return () => clearTimeout(t)
   }, [pattern])
+
+  useEffect(() => {
+    applyTheme(theme)
+    saveTheme(browserStorage(), theme)
+  }, [theme])
+
+  const toggleTheme = () => setTheme((t) => (t === 'light' ? 'dark' : 'light'))
 
   // 사용자가 값을 실제로 바꾸면 그 매개변수는 잠긴다. 값이 그대로면 잠그지 않는다
   const setParam = (key: string, value: ParamValue) =>
@@ -97,6 +107,8 @@ export default function App() {
         onRandomizeAll={randomizeEverything}
         onCopyLink={() => navigator.clipboard.writeText(window.location.href)}
         onExport={() => setExportOpen(true)}
+        theme={theme}
+        onToggleTheme={toggleTheme}
       />
       <div className="body">
         <ControlPanel
@@ -116,7 +128,7 @@ export default function App() {
             onChange={(palette, locks) => setPattern((p) => ({ ...p, palette, locks }))}
           />
         </ControlPanel>
-        <Preview scene={scene} view={view} scale={scale} onViewChange={setView} onScaleChange={setScale} />
+        <Preview scene={scene} view={view} scale={scale} onViewChange={setView} onScaleChange={setScale} theme={theme} />
       </div>
       <ExportDialog
         open={exportOpen}

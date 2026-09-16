@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import type { Scene } from '../core/scene'
 import { renderFill, tilePixelSize } from '../render/canvas'
 import { MAX_DIM } from '../render/export'
+import type { Theme } from './theme'
 
 export type ViewMode = 'fill' | 'tile' | 'grid3'
 
@@ -11,6 +12,7 @@ interface Props {
   scale: number
   onViewChange(v: ViewMode): void
   onScaleChange(s: number): void
+  theme: Theme
 }
 
 const VIEWS: { id: ViewMode; label: string }[] = [
@@ -19,7 +21,7 @@ const VIEWS: { id: ViewMode; label: string }[] = [
   { id: 'grid3', label: '3 × 3' },
 ]
 
-export function Preview({ scene, view, scale, onViewChange, onScaleChange }: Props) {
+export function Preview({ scene, view, scale, onViewChange, onScaleChange, theme }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
 
@@ -29,6 +31,7 @@ export function Preview({ scene, view, scale, onViewChange, onScaleChange }: Pro
     if (!canvas || !wrap) return
     let raf = 0
     const draw = () => {
+      canvas.dataset.theme = theme
       const dpr = window.devicePixelRatio || 1
       const cw = wrap.clientWidth
       const ch = wrap.clientHeight
@@ -39,11 +42,15 @@ export function Preview({ scene, view, scale, onViewChange, onScaleChange }: Pro
       canvas.style.height = `${ch}px`
       const ctx = canvas.getContext('2d')
       if (!ctx) return
-      ctx.fillStyle = '#0c0c0c'
+      const css = getComputedStyle(document.documentElement)
+      const canvasBg = css.getPropertyValue('--canvas-bg').trim() || '#0c0c0c'
+      const mutedColor = css.getPropertyValue('--muted').trim() || '#9a9a9a'
+      const gridLine = css.getPropertyValue('--grid-line').trim() || 'rgba(255,255,255,0.75)'
+      ctx.fillStyle = canvasBg
       ctx.fillRect(0, 0, canvas.width, canvas.height)
       const unavailable = () => {
         ctx.save()
-        ctx.fillStyle = '#9a9a9a'
+        ctx.fillStyle = mutedColor
         ctx.font = `${14 * dpr}px system-ui`
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
@@ -69,7 +76,7 @@ export function Preview({ scene, view, scale, onViewChange, onScaleChange }: Pro
       }
       if (n === 3) {
         ctx.save()
-        ctx.strokeStyle = 'rgba(255,255,255,0.75)'
+        ctx.strokeStyle = gridLine
         ctx.setLineDash([4 * dpr, 4 * dpr])
         ctx.lineWidth = dpr
         for (let i = 1; i < 3; i++) {
@@ -96,7 +103,7 @@ export function Preview({ scene, view, scale, onViewChange, onScaleChange }: Pro
       cancelAnimationFrame(raf)
       ro.disconnect()
     }
-  }, [scene, view, scale])
+  }, [scene, view, scale, theme])
 
   return (
     <main className="preview">

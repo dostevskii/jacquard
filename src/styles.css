@@ -1,4 +1,20 @@
 :root {
+  color-scheme: light;
+  --bg: #f3f3f1;
+  --panel: #ffffff;
+  --border: #d9d9d6;
+  --text: #1a1a1a;
+  --muted: #6a6a6a;
+  --accent: #2b6cd9;
+  --on-accent: #ffffff;
+  --canvas-bg: #e4e4e1;
+  --danger: #c62828;
+  --grid-line: rgba(0, 0, 0, 0.6);
+  --swatch-ring: rgba(0, 0, 0, 0.15);
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-size: 13px;
+}
+:root[data-theme='dark'] {
   color-scheme: dark;
   --bg: #141414;
   --panel: #1d1d1d;
@@ -6,9 +22,11 @@
   --text: #ececec;
   --muted: #9a9a9a;
   --accent: #6aa9dc;
+  --on-accent: #0c0c0c;
+  --canvas-bg: #0c0c0c;
+  --danger: #ff6b5e;
+  --grid-line: rgba(255, 255, 255, 0.75);
   --swatch-ring: rgba(255, 255, 255, 0.15);
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  font-size: 13px;
 }
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
@@ -39,7 +57,7 @@ body { background: var(--bg); color: var(--text); }
   padding: 4px 6px; font: inherit;
 }
 .control .num { width: 80px; justify-self: end; }
-.control .num.invalid { border-color: #e63b2e; }
+.control .num.invalid { border-color: var(--danger); }
 .control-head { display: flex; align-items: center; gap: 4px; min-height: 22px; }
 .control-head .control-label { flex: none; }
 .control.locked .control-label { color: var(--text); }
@@ -56,13 +74,13 @@ body { background: var(--bg); color: var(--text); }
   background: transparent; color: var(--muted); border: 0; padding: 4px 10px; font: inherit; cursor: pointer;
 }
 .segmented button + button { border-left: 1px solid var(--border); }
-.segmented button.on { background: var(--accent); color: #0c0c0c; }
+.segmented button.on { background: var(--accent); color: var(--on-accent); }
 .btn {
   background: var(--bg); color: var(--text); border: 1px solid var(--border); border-radius: 4px;
   padding: 5px 10px; font: inherit; cursor: pointer;
 }
 .btn:hover { border-color: var(--accent); }
-.btn.primary { background: var(--accent); color: #0c0c0c; border-color: var(--accent); font-weight: 600; }
+.btn.primary { background: var(--accent); color: var(--on-accent); border-color: var(--accent); font-weight: 600; }
 .seed { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); }
 .seed input { width: 120px; }
 .btn.randomize { display: inline-flex; align-items: center; gap: 6px; }
@@ -96,7 +114,7 @@ body { background: var(--bg); color: var(--text); }
   padding: 3px 5px; font: inherit; width: 56px;
 }
 .field.hex input { width: 96px; font-family: ui-monospace, Menlo, Consolas, monospace; }
-.field.invalid input { border-color: #e63b2e; }
+.field.invalid input { border-color: var(--danger); }
 .field.brightness { width: 100%; }
 .field.brightness input { flex: 1; accent-color: var(--accent); }
 .color-inputs { display: flex; flex-direction: column; gap: 6px; width: 100%; }
@@ -110,6 +128,7 @@ body { background: var(--bg); color: var(--text); }
   box-shadow: inset 0 0 0 1px var(--swatch-ring);
 }
 .swatch.on { border-color: var(--text); }
+.swatch.locked { outline: 1px solid var(--accent); outline-offset: 1px; }
 .swatch-pick { position: absolute; inset: 0; background: transparent; border: 0; padding: 0; cursor: pointer; border-radius: 2px; }
 .swatch-tag {
   position: absolute; left: 0; right: 0; bottom: -1px; font-size: 9px; font-weight: 700; text-align: center;
@@ -121,7 +140,11 @@ body { background: var(--bg); color: var(--text); }
   display: inline-flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0;
 }
 .swatch:hover .swatch-lock, .swatch-lock.on { opacity: 1; }
+.swatch-lock:focus-visible { opacity: 1; }
 .swatch-lock.on { color: var(--accent); border-color: var(--accent); }
+.icon-btn:focus-visible, .swatch-lock:focus-visible, .swatch-pick:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 1px;
+}
 .palette-tools { display: flex; align-items: center; gap: 4px; margin-bottom: 6px; }
 .palette-tools .btn { padding: 3px 6px; }
 .palette-tools .btn:disabled { opacity: 0.35; cursor: default; border-color: var(--border); }
@@ -140,4 +163,4 @@ body { background: var(--bg); color: var(--text); }
 .modal .size-row { display: flex; gap: 12px; }
 .modal .size-row .field input { width: 90px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
-.info.error { color: #ff6b5e; }
+.info.error { color: var(--danger); }
