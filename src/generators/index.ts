@@ -5,9 +5,10 @@ import { ensurePaletteLength } from '../core/palettes'
 import { mulberry32 } from '../core/prng'
 import type { GeneratorDef } from './types'
 import { stripes } from './stripes'
+import { plaid } from './plaid'
 
 // 2부에서 생성기를 추가할 때 import와 이 배열에 한 줄씩 추가한다
-export const GENERATORS: GeneratorDef[] = [stripes]
+export const GENERATORS: GeneratorDef[] = [stripes, plaid]
 
 export const DEFAULT_GENERATOR_ID = 'stripes'
 

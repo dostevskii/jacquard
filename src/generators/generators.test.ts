@@ -17,6 +17,7 @@ interface Case {
 // 2부에서 생성기를 추가할 때마다 여기에 한 행씩 추가한다
 const CASES: Case[] = [
   { id: 'stripes', rngParams: { colorMode: 'random' } },
+  { id: 'plaid', rngParams: { blend: 'weave' }, mixedColors: true },
 ]
 
 describe('registry', () => {
