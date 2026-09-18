@@ -4,6 +4,9 @@ import { applyEffects, hasEnabledEffects } from '../post'
 
 export interface TilePx { w: number; h: number }
 
+/** 효과가 켜진 미리보기 타일의 픽셀 상한 — 이보다 크면 작은 타일을 그려 확대한다 */
+export const PREVIEW_EFFECT_PX_LIMIT = 4_000_000
+
 /** 타일 1장에 적용할 후처리 설정. 없거나 켜진 효과가 없으면 픽셀 왕복을 건너뛴다 */
 export interface PostOptions {
   effects: EffectsState
@@ -86,9 +89,15 @@ export function renderFill(
   const tile = document.createElement('canvas')
   tile.width = tilePx.w
   tile.height = tilePx.h
-  const tctx = tile.getContext('2d')
+  // 효과가 켜져 있으면 getImageData 왕복이 있으므로 읽기 힌트를 준다
+  const tctx = tile.getContext('2d', post && hasEnabledEffects(post.effects) ? { willReadFrequently: true } : undefined)
   if (!tctx) return false
-  renderTile(scene, tilePx, tctx, post)
+  // 거대한 타일에서 getImageData가 실패하면 rAF 콜백을 터뜨리지 않고 "Preview unavailable"로 넘긴다
+  try {
+    renderTile(scene, tilePx, tctx, post)
+  } catch {
+    return false
+  }
   const pattern = ctx.createPattern(tile, 'repeat')
   if (!pattern) return false
   ctx.save()

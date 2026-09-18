@@ -1,8 +1,9 @@
 import { useEffect, useRef } from 'react'
 import type { Scene } from '../core/scene'
 import type { PostOptions } from '../render/canvas'
-import { renderFill, tilePixelSize } from '../render/canvas'
+import { PREVIEW_EFFECT_PX_LIMIT, renderFill, tilePixelSize } from '../render/canvas'
 import { MAX_DIM } from '../render/export'
+import { hasEnabledEffects } from '../post'
 import type { Theme } from './theme'
 
 export type ViewMode = 'fill' | 'tile' | 'grid3'
@@ -62,17 +63,34 @@ export function Preview({ scene, view, scale, onViewChange, onScaleChange, theme
       // 타일 한 변이 브라우저 캔버스 한계를 넘지 않도록 배율을 낮춘다
       const maxScale = Math.min(MAX_DIM / scene.width, MAX_DIM / scene.height)
       const eff = Math.min(scale * dpr, maxScale)
-      const tilePx = tilePixelSize(scene, eff)
+      // 효과가 켜져 있으면 타일 픽셀 수를 제한하고, 부족한 배율은 CTM으로 확대해 화면 배율을 유지한다
+      const effectsOn = hasEnabledEffects(post.effects)
+      const capScale = Math.sqrt(PREVIEW_EFFECT_PX_LIMIT / (scene.width * scene.height))
+      const drawScale = effectsOn ? Math.min(eff, capScale) : eff
+      const k = eff / drawScale // 상한에 걸리지 않으면 1
+      const tilePx = tilePixelSize(scene, drawScale)
+      // 상한에 걸렸을 때만 CTM을 확대하고 최근접 보간을 강제한다.
+      // k === 1이면 호출 순서가 v1.1과 완전히 같아 픽셀이 그대로 보존된다
+      const fill = (w: number, h: number, origin: { x: number; y: number }) => {
+        if (k === 1) return renderFill(scene, tilePx, ctx, w, h, origin, post)
+        ctx.save()
+        ctx.scale(k, k)
+        ctx.imageSmoothingEnabled = false
+        const ok = renderFill(scene, tilePx, ctx, w, h, origin, post)
+        ctx.restore()
+        return ok
+      }
       if (view === 'fill') {
-        if (!renderFill(scene, tilePx, ctx, canvas.width, canvas.height, { x: 0, y: 0 }, post)) unavailable()
+        if (!fill(canvas.width / k, canvas.height / k, { x: 0, y: 0 })) unavailable()
         return
       }
       const n = view === 'tile' ? 1 : 3
       const totalW = tilePx.w * n
       const totalH = tilePx.h * n
-      const ox = Math.round((canvas.width - totalW) / 2)
-      const oy = Math.round((canvas.height - totalH) / 2)
-      if (!renderFill(scene, tilePx, ctx, totalW, totalH, { x: ox, y: oy }, post)) {
+      // 중앙 정렬은 축소된 좌표계(capped space)에서 계산한다
+      const ox = Math.round((canvas.width / k - totalW) / 2)
+      const oy = Math.round((canvas.height / k - totalH) / 2)
+      if (!fill(totalW, totalH, { x: ox, y: oy })) {
         unavailable()
         return
       }
@@ -81,14 +99,15 @@ export function Preview({ scene, view, scale, onViewChange, onScaleChange, theme
         ctx.strokeStyle = gridLine
         ctx.setLineDash([4 * dpr, 4 * dpr])
         ctx.lineWidth = dpr
+        // 파선은 장치 좌표계에서 그려 굵기를 1 css px로 유지하고, 위치는 실제 반복 경계에 맞춘다
         for (let i = 1; i < 3; i++) {
           ctx.beginPath()
-          ctx.moveTo(ox + i * tilePx.w + 0.5, oy)
-          ctx.lineTo(ox + i * tilePx.w + 0.5, oy + totalH)
+          ctx.moveTo(ox * k + i * tilePx.w * k + 0.5, oy * k)
+          ctx.lineTo(ox * k + i * tilePx.w * k + 0.5, oy * k + totalH * k)
           ctx.stroke()
           ctx.beginPath()
-          ctx.moveTo(ox, oy + i * tilePx.h + 0.5)
-          ctx.lineTo(ox + totalW, oy + i * tilePx.h + 0.5)
+          ctx.moveTo(ox * k, oy * k + i * tilePx.h * k + 0.5)
+          ctx.lineTo(ox * k + totalW * k, oy * k + i * tilePx.h * k + 0.5)
           ctx.stroke()
         }
         ctx.restore()
