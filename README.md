@@ -17,11 +17,12 @@ every edge — made in the browser and downloaded as PNG or JPG for textile, til
 
 ## What is Jacquard?
 
-Jacquard is a single-page web app that builds **seamless repeat tiles**. Pick a generator from
-the top bar, turn the sliders in the left panel, and the preview redraws on the spot. The palette
-sits under the parameters: click a swatch, then set the colour on the wheel or type it as HEX,
-RGB, HSL or HSB. When it looks right, Export writes a single tile at any scale, or a whole
-canvas — 1080 × 1080, A3 at 300 dpi, or your own size up to 8192 px — as PNG or JPG.
+Jacquard is a single-page web app that builds **seamless repeat tiles**. It opens with the Zigzag
+generator; pick another from the top bar, turn the sliders in the left panel, and the preview
+redraws on the spot. The palette sits under the parameters: click a swatch, then set the colour on
+the wheel or type it as HEX, RGB, HSL or HSB. When it looks right, Export writes a single tile at
+any scale, or a whole canvas — 1080 × 1080, A3 at 300 dpi, or your own size up to 8192 px — as PNG
+or JPG.
 
 Everything is reproducible. A generator is a pure function of its parameters, the palette and a
 seeded PRNG, so the same seed always gives the same tile; the seed sits in the top bar with a dice
@@ -31,7 +32,9 @@ on every control and every swatch lets you pin the rest. The complete state — 
 every parameter, every colour and every lock — is base64url JSON in the URL hash, so **Copy link**
 hands someone else the exact pattern you are looking at. And because the generator only ever emits
 a small intermediate scene of rectangles, polygons and linear gradients, the tile you see on screen
-is the tile that gets exported.
+is the tile that gets exported. The six post-processing effects follow the same rule: they are
+applied to the single tile, before it is repeated, with every size measured in tile units — so the
+export matches the preview at any scale and the repeat stays seamless.
 
 ## Screenshots
 
@@ -58,6 +61,10 @@ is the tile that gets exported.
 | Locks and Randomize — two locked parameters, a locked seed | Palette locks — a badge on every locked swatch | Dark theme — the 3 × 3 view |
 | --- | --- | --- |
 | ![Top bar with Randomize, a locked seed and two locked parameters](docs/screenshots/locks-topbar.png) | ![Palette with lock badges on four of six swatches](docs/screenshots/palette-locks.png) | ![The same app in the dark theme](docs/screenshots/theme-dark.png) |
+
+| Effects — grain + blur | Effects — halftone |
+| --- | --- |
+| ![Zigzag with Missoni Blue, blur radius 2 and grain amount 45](docs/screenshots/effects-grain-blur.png) | ![Gradient Bars with the Boogie palette and halftone ink dots](docs/screenshots/effects-halftone.png) |
 
 ## Features
 
@@ -88,6 +95,12 @@ is the tile that gets exported.
   Neon Op, Candy Weave. **Randomize colors** builds a new one instead: hues spaced by the golden
   angle (137.5°), saturation 55–85, value 35–90, and a background that is either very light or
   very dark
+- **Post-processing effects** — six raster effects applied to the tile in a fixed order
+  (pixelate → blur → posterize → dither → halftone → grain). Sizes are in tile units, so an export
+  matches the preview; blur wraps around the tile edge so repeats stay seamless; grain is seeded
+  and deterministic; and halftone lays its dots in the palette's darkest colour on its lightest.
+  Each effect has a checkbox and its own values, each value has a dice of its own, and nothing here
+  locks or is touched by **Randomize**
 - **Randomize with locks** — **Randomize** in the top bar changes every unlocked value: the seed,
   every parameter and every colour in one press, and never changes the generator. Anything you touched is
   locked automatically; a lock icon sits on every control and a lock badge on every swatch, so you
@@ -131,6 +144,7 @@ The left panel is the instrument; the preview to the right is the result.
 | Preset… | Applies one of the eight preset palettes |
 | Randomize colors | New colours for every unlocked swatch, at the same palette length |
 | Colour wheel, Brightness, HEX / RGB / HSL / HSB | Edit the selected colour |
+| Effects section | A checkbox turns each effect on and reveals its values, set with sliders and segmented buttons. The dice beside a value rerolls only that value. Effects never lock, and **Randomize** never touches them |
 | Fill / Tile / 3 × 3 | Preview mode |
 | Scale slider | 0.25× to 4×, in quarter steps |
 
@@ -157,6 +171,10 @@ shared link arrives with the same things pinned.
   requested pixel size, and `ctx.createPattern(tile, 'repeat')` fills the preview or the export
   canvas from it. Rectangle edges are rounded to whole device pixels and polygons get a 1 px
   stroke in their own fill colour, so anti-aliasing leaves no hairlines at the joins
+- **Post-processing runs on that one tile** — once the tile is drawn, the enabled effects rewrite
+  its pixels in place, in the fixed order, before `createPattern` ever sees it. Each effect scales
+  its own sizes by the tile's px-per-unit, and blur reads across the tile edge as if it wrapped, so
+  one pass over one tile leaves every repeat identical and every seam continuous
 - **`palette[0]` is the background** — every generator follows it, and foreground colours are
   cycled as `palette[1 + (i mod (len − 1))]`. That one convention is why any preset can be
   dropped onto any generator
@@ -168,9 +186,9 @@ shared link arrives with the same things pinned.
 - [React 19](https://react.dev) + TypeScript 6 + [Vite 8](https://vite.dev)
 - Canvas 2D for rendering and for PNG / JPG encoding (`toBlob`, JPEG quality 0.92) — no image
   libraries, no server round-trip
-- [Vitest](https://vitest.dev) — 212 tests across 21 files, run in the Node environment because
-  the generators, the Scene geometry, the lock and randomisation rules and the colour maths never
-  touch the DOM
+- [Vitest](https://vitest.dev) — 247 tests across 28 files, run in the Node environment because
+  the generators, the Scene geometry, the post-processing effects, the lock and randomisation rules
+  and the colour maths never touch the DOM
 - [oxlint](https://oxc.rs)
 - Runtime dependencies: `react` and `react-dom`, and nothing else. The PRNG, the colour
   conversions and the colour wheel (two stacked CSS gradients) are all in this repo
@@ -198,14 +216,20 @@ src/
 │   ├── util.ts
 │   ├── stripes.ts  plaid.ts  zigzag.ts  motif.ts  rings.ts
 │   └── gradientBars.ts  isoCubes.ts  triangles.ts
+├── post/                # One pure in-place effect per file, applied in registry order
+│   ├── index.ts         # EFFECTS order, defaults, applyEffects()
+│   ├── types.ts         # EffectDef, EffectContext, RasterImage
+│   ├── pixelate.ts  blur.ts  posterize.ts
+│   └── dither.ts  halftone.ts  grain.ts
 ├── render/
-│   ├── canvas.ts        # renderTile, renderFill (createPattern)
+│   ├── canvas.ts        # renderTile, renderFill (createPattern), PostOptions
 │   └── export.ts        # Size presets, 8192 px limit, encode, download
 └── ui/
     ├── TopBar.tsx       # Generator, seed + lock + dice, Randomize, theme, copy link, Export
     ├── ControlPanel.tsx # Parameters + output readout
     ├── ParamControl.tsx # range / select / toggle widgets, each with a dice and a lock
     ├── PalettePanel.tsx # Swatches with lock badges, presets, Randomize colors
+    ├── EffectsPanel.tsx # One row per effect — checkbox, values, per-value dice
     ├── LockButton.tsx DiceButton.tsx   # 16 px inline-SVG icon buttons
     ├── theme.ts         # light / dark, stored under `jacquard-theme`
     ├── ColorEditor.tsx ColorWheel.tsx ColorInputs.tsx colorMath.ts
@@ -222,7 +246,7 @@ other pieces of state.
 ```bash
 npm install
 npm run dev        # http://localhost:5173
-npm test           # Vitest — 212 tests, 21 files
+npm test           # Vitest — 247 tests, 28 files
 npm run lint       # oxlint
 npm run build      # production build → dist/
 ```
@@ -238,7 +262,15 @@ npm run deploy     # build, then wrangler pages deploy dist --project-name=jacqu
 - **Raster export only.** PNG and JPG. The Scene IR is deliberately limited to rectangles,
   polygons and linear gradients so an SVG writer can be added on top of it, but that writer does
   not exist yet
-- **No grain, blur or any other post-processing.** A tile is flat colour and linear gradients
+- **The effects are raster-only.** They rewrite the tile's pixels, so they live outside the Scene
+  IR. If an SVG writer is ever added, only blur and grain have an SVG filter that could stand in
+  for them; pixelate, posterize, dither and halftone would have no equivalent
+- **Ordered dithering only.** Dither uses a Bayer threshold matrix (2 × 2, 4 × 4 or 8 × 8). There
+  is no error diffusion, so no Floyd–Steinberg look
+- **Blur is capped at a 64 px radius.** The radius is in tile units and multiplied by the current
+  px-per-unit, so at a high scale it stops getting softer once it hits that ceiling
+- **The pixelate and halftone grids are anchored at the tile origin.** A cell size that does not
+  divide the tile evenly leaves a clipped row and column at the far edges, so prefer sizes that do
 - **No undo/redo.** Every edit applies at once, and the hash is rewritten in place with
   `history.replaceState`, so browser Back does not step through your changes either
 - **Desktop layout only.** The app is laid out at a minimum width of 1024 px, with no mobile
@@ -264,9 +296,9 @@ MIT — see [LICENSE](LICENSE).
 ## Jacquard란?
 
 Jacquard는 **이어 붙여도 무늬가 맞는 반복 타일(seamless repeat)** 을 만드는 단일 페이지
-웹앱입니다. 상단 바에서 생성기를 고르고 왼쪽 패널의 슬라이더를 움직이면 미리보기가 즉시
-다시 그려집니다. 매개변수 아래가 팔레트입니다. 스와치를 클릭한 다음 색상환에서 색을 집거나
-HEX·RGB·HSL·HSB로 직접 입력하면 됩니다. 마음에 들면 Export로 타일 한 장을 원하는 배율로
+웹앱입니다. 처음 열면 Zigzag 생성기로 시작합니다. 상단 바에서 다른 생성기를 고르고 왼쪽 패널의
+슬라이더를 움직이면 미리보기가 즉시 다시 그려집니다. 매개변수 아래가 팔레트입니다. 스와치를
+클릭한 다음 색상환에서 색을 집거나 HEX·RGB·HSL·HSB로 직접 입력하면 됩니다. 마음에 들면 Export로 타일 한 장을 원하는 배율로
 뽑거나, 캔버스 전체를 1080 × 1080, A4 300dpi, 또는 8192px까지 직접 지정한 크기로
 PNG·JPG로 내려받습니다.
 
@@ -277,7 +309,9 @@ PNG·JPG로 내려받습니다.
 나머지도 직접 잠글 수 있습니다. 생성기, 시드, 모든 매개변수, 모든 색, 모든 잠금을 담은 상태
 전체가 URL 해시에 base64url JSON으로 들어가므로 **Copy link** 한 번이면 지금 보고 있는 패턴을
 그대로 넘길 수 있습니다. 또한 생성기는 사각형·다각형·선형 그라데이션만으로 이루어진 작은
-중간 표현(Scene)만 내놓기 때문에, 화면에서 본 타일이 그대로 내보내집니다.
+중간 표현(Scene)만 내놓기 때문에, 화면에서 본 타일이 그대로 내보내집니다. 후처리 효과 6종도
+같은 원칙을 따릅니다. 타일을 반복하기 전에 타일 한 장에만 적용하고 크기는 모두 타일 단위로
+재므로, 어떤 배율에서도 내보낸 결과가 미리보기와 같고 이음새도 그대로 유지됩니다.
 
 ## 스크린샷
 
@@ -304,6 +338,10 @@ PNG·JPG로 내려받습니다.
 | 잠금과 Randomize — 매개변수 2개와 시드 잠금 | 팔레트 잠금 — 잠긴 스와치의 배지 | 다크 테마 — 3 × 3 뷰 |
 | --- | --- | --- |
 | ![Randomize 버튼과 잠긴 시드·매개변수가 보이는 상단 바](docs/screenshots/locks-topbar.png) | ![여섯 색 중 네 색에 잠금 배지가 붙은 팔레트](docs/screenshots/palette-locks.png) | ![다크 테마로 본 같은 화면](docs/screenshots/theme-dark.png) |
+
+| Effects — 그레인 + 블러 | Effects — 하프톤 |
+| --- | --- |
+| ![Missoni Blue 팔레트의 Zigzag에 블러 반지름 2, 그레인 45를 적용한 화면](docs/screenshots/effects-grain-blur.png) | ![Boogie 팔레트의 Gradient Bars에 하프톤 잉크 점을 적용한 화면](docs/screenshots/effects-halftone.png) |
 
 ## 주요 기능
 
@@ -333,6 +371,11 @@ PNG·JPG로 내려받습니다.
 - **프리셋 팔레트 8종** — Missoni Blue, Walala, Underground, Boogie, Poppy Field, Bauhaus,
   Neon Op, Candy Weave. **Randomize colors**는 대신 새 팔레트를 만듭니다. 색상은 황금각(137.5°)
   간격, 채도 55–85, 명도 35–90, 배경은 아주 밝거나 아주 어둡게
+- **후처리 효과** — 타일에 정해진 순서(pixelate → blur → posterize → dither → halftone → grain)로
+  적용되는 래스터 효과 6종입니다. 크기는 모두 타일 단위라 내보낸 결과가 미리보기와 같고, 블러는
+  타일 경계를 감아 읽어 반복해도 이음새가 살아 있으며, 그레인은 시드 기반이라 결정적이고,
+  하프톤은 팔레트에서 가장 어두운 색을 잉크 삼아 가장 밝은 색 위에 점을 찍습니다. 효과마다
+  체크박스와 자기 값이 있고 값마다 주사위가 붙지만, 잠금은 없고 **Randomize**도 건드리지 않습니다
 - **Randomize와 잠금** — 상단 바의 **Randomize**는 잠기지 않은 모든 값(시드, 모든 매개변수,
   모든 색)을 한 번에 바꾸고 생성기는 절대 바꾸지 않습니다. 한 번이라도 손댄 값은 자동으로 잠기고, 모든
   컨트롤에는 자물쇠 아이콘이, 모든 스와치에는 자물쇠 배지가 있어 직접 잠그고 풀 수 있으며,
@@ -376,6 +419,7 @@ PNG·JPG로 내려받습니다.
 | Preset… | 프리셋 팔레트 8종 중 하나를 적용 |
 | Randomize colors | 잠기지 않은 스와치를 전부 새 색으로. 팔레트 길이는 그대로 |
 | 색상환, Brightness, HEX / RGB / HSL / HSB | 선택한 색을 편집 |
+| Effects 섹션 | 체크박스로 효과를 켜면 그 효과의 값이 펼쳐지고, 슬라이더와 분절 버튼으로 조절합니다. 값 옆의 주사위는 그 값 하나만 다시 뽑습니다. 효과에는 잠금이 없고 **Randomize**도 효과를 건드리지 않습니다 |
 | Fill / Tile / 3 × 3 | 미리보기 모드 |
 | 배율 슬라이더 | 0.25×–4×, 0.25 단위 |
 
@@ -401,6 +445,10 @@ HSL / HSB로 색을 바꾸면 그 스와치가 잠기고, 프리셋을 적용하
   그린 뒤 `ctx.createPattern(tile, 'repeat')`으로 미리보기나 내보내기 캔버스를 채웁니다. 사각형
   변은 장치 픽셀에 맞춰 반올림하고 다각형에는 같은 색으로 1px 스트로크를 덧그려, 안티에일리어싱
   때문에 이음매에 실선이 뜨지 않게 합니다
+- **후처리도 그 타일 한 장에서 끝난다** — 타일을 그린 뒤, 켜진 효과들이 정해진 순서로 그 픽셀을
+  제자리에서 고쳐 씁니다. `createPattern`은 그 결과만 봅니다. 효과는 저마다 자기 크기에 타일의
+  unit당 px을 곱하고, 블러는 타일 경계 너머를 감아서 읽습니다. 그래서 타일 한 장을 한 번 훑는
+  것만으로 모든 반복이 똑같아지고 모든 이음새가 이어집니다
 - **`palette[0]`은 배경이다** — 모든 생성기가 이 규약을 따르고, 전경색은
   `palette[1 + (i mod (len − 1))]`로 순환합니다. 이 한 가지 규약 덕분에 어떤 프리셋도 어떤 생성기에
   그대로 얹을 수 있습니다
@@ -412,8 +460,8 @@ HSL / HSB로 색을 바꾸면 그 스와치가 잠기고, 프리셋을 적용하
 - [React 19](https://react.dev) + TypeScript 6 + [Vite 8](https://vite.dev)
 - 렌더와 PNG / JPG 인코딩 모두 Canvas 2D (`toBlob`, JPEG 품질 0.92). 이미지 라이브러리도, 서버
   왕복도 없습니다
-- [Vitest](https://vitest.dev) — 21개 파일 212개 테스트. 생성기·Scene 기하·잠금과 무작위 규칙·색
-  변환이 DOM과 무관해 Node 환경에서 그대로 돌립니다
+- [Vitest](https://vitest.dev) — 28개 파일 247개 테스트. 생성기·Scene 기하·후처리 효과·잠금과
+  무작위 규칙·색 변환이 DOM과 무관해 Node 환경에서 그대로 돌립니다
 - [oxlint](https://oxc.rs)
 - 런타임 의존성은 `react`와 `react-dom` 둘뿐입니다. PRNG, 색 변환, 색상환(CSS 그라데이션 두 겹)은
   모두 이 저장소 안에 있습니다
@@ -441,14 +489,20 @@ src/
 │   ├── util.ts
 │   ├── stripes.ts  plaid.ts  zigzag.ts  motif.ts  rings.ts
 │   └── gradientBars.ts  isoCubes.ts  triangles.ts
+├── post/                # 파일 하나당 제자리 수정 순수 효과 하나, 등록 순서대로 적용
+│   ├── index.ts         # EFFECTS 순서, 기본값, applyEffects()
+│   ├── types.ts         # EffectDef, EffectContext, RasterImage
+│   ├── pixelate.ts  blur.ts  posterize.ts
+│   └── dither.ts  halftone.ts  grain.ts
 ├── render/
-│   ├── canvas.ts        # renderTile, renderFill (createPattern)
+│   ├── canvas.ts        # renderTile, renderFill (createPattern), PostOptions
 │   └── export.ts        # 크기 프리셋, 8192px 상한, 인코딩, 내려받기
 └── ui/
     ├── TopBar.tsx       # 생성기, 시드 + 자물쇠 + 주사위, Randomize, 테마, 링크 복사, Export
     ├── ControlPanel.tsx # 매개변수 + 출력 정보
     ├── ParamControl.tsx # range / select / toggle 위젯, 각각 주사위와 자물쇠
     ├── PalettePanel.tsx # 자물쇠 배지가 달린 스와치, 프리셋, Randomize colors
+    ├── EffectsPanel.tsx # 효과마다 한 줄 — 체크박스, 값, 값별 주사위
     ├── LockButton.tsx DiceButton.tsx   # 16px 인라인 SVG 아이콘 버튼
     ├── theme.ts         # 라이트 / 다크, `jacquard-theme`에 저장
     ├── ColorEditor.tsx ColorWheel.tsx ColorInputs.tsx colorMath.ts
@@ -464,7 +518,7 @@ src/
 ```bash
 npm install
 npm run dev        # http://localhost:5173
-npm test           # Vitest — 21개 파일 212개 테스트
+npm test           # Vitest — 28개 파일 247개 테스트
 npm run lint       # oxlint
 npm run build      # 프로덕션 빌드 → dist/
 npm run deploy     # 빌드 후 wrangler pages deploy dist --project-name=jacquard
@@ -474,7 +528,15 @@ npm run deploy     # 빌드 후 wrangler pages deploy dist --project-name=jacqua
 
 - **내보내기는 래스터뿐입니다.** PNG와 JPG만 됩니다. Scene IR을 사각형·다각형·선형 그라데이션으로
   일부러 제한해 두어 SVG 출력기를 얹을 수 있게 했지만, 그 출력기는 아직 없습니다
-- **그레인, 블러 등 후처리가 없습니다.** 타일은 단색과 선형 그라데이션으로만 이루어집니다
+- **효과는 래스터 전용입니다.** 타일의 픽셀을 고쳐 쓰는 방식이라 Scene IR 밖에 있습니다. 나중에
+  SVG 출력기를 붙이더라도 블러와 그레인만 SVG 필터로 대신할 수 있고, 픽셀화·포스터라이즈·디더·
+  하프톤에는 대응하는 표현이 없습니다
+- **순서 디더링만 있습니다.** 디더는 Bayer 임계 행렬(2 × 2, 4 × 4, 8 × 8)을 씁니다. 오차 확산이
+  없으므로 Floyd–Steinberg 특유의 질감은 나오지 않습니다
+- **블러 반지름은 64px이 상한입니다.** 반지름은 타일 단위라 현재 unit당 px을 곱해 쓰는데, 배율이
+  높으면 이 상한에 걸려 그 이상 부드러워지지 않습니다
+- **픽셀화와 하프톤 격자는 타일 원점을 기준으로 잡힙니다.** 타일 크기로 나누어떨어지지 않는 셀
+  크기를 쓰면 끝쪽 한 행과 한 열이 잘리므로, 약수가 되는 크기를 권합니다
 - **실행 취소/다시 실행이 없습니다.** 모든 편집이 즉시 반영되고, 해시는
   `history.replaceState`로 제자리에서 갱신되므로 브라우저 뒤로 가기로도 되돌릴 수 없습니다
 - **데스크톱 레이아웃 전용입니다.** 최소 폭 1024px로 배치되어 있고 모바일 분기점이나 터치
