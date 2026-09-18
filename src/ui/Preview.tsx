@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import type { Scene } from '../core/scene'
+import type { PostOptions } from '../render/canvas'
 import { renderFill, tilePixelSize } from '../render/canvas'
 import { MAX_DIM } from '../render/export'
 import type { Theme } from './theme'
@@ -13,6 +14,7 @@ interface Props {
   onViewChange(v: ViewMode): void
   onScaleChange(s: number): void
   theme: Theme
+  post: PostOptions
 }
 
 const VIEWS: { id: ViewMode; label: string }[] = [
@@ -21,7 +23,7 @@ const VIEWS: { id: ViewMode; label: string }[] = [
   { id: 'grid3', label: '3 × 3' },
 ]
 
-export function Preview({ scene, view, scale, onViewChange, onScaleChange, theme }: Props) {
+export function Preview({ scene, view, scale, onViewChange, onScaleChange, theme, post }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const wrapRef = useRef<HTMLDivElement>(null)
 
@@ -62,7 +64,7 @@ export function Preview({ scene, view, scale, onViewChange, onScaleChange, theme
       const eff = Math.min(scale * dpr, maxScale)
       const tilePx = tilePixelSize(scene, eff)
       if (view === 'fill') {
-        if (!renderFill(scene, tilePx, ctx, canvas.width, canvas.height)) unavailable()
+        if (!renderFill(scene, tilePx, ctx, canvas.width, canvas.height, { x: 0, y: 0 }, post)) unavailable()
         return
       }
       const n = view === 'tile' ? 1 : 3
@@ -70,7 +72,7 @@ export function Preview({ scene, view, scale, onViewChange, onScaleChange, theme
       const totalH = tilePx.h * n
       const ox = Math.round((canvas.width - totalW) / 2)
       const oy = Math.round((canvas.height - totalH) / 2)
-      if (!renderFill(scene, tilePx, ctx, totalW, totalH, { x: ox, y: oy })) {
+      if (!renderFill(scene, tilePx, ctx, totalW, totalH, { x: ox, y: oy }, post)) {
         unavailable()
         return
       }
@@ -104,7 +106,7 @@ export function Preview({ scene, view, scale, onViewChange, onScaleChange, theme
       cancelAnimationFrame(raf)
       ro.disconnect()
     }
-  }, [scene, view, scale, theme])
+  }, [scene, view, scale, theme, post])
 
   return (
     <main className="preview">

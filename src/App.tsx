@@ -9,6 +9,7 @@ import { randomizeAll, randomParamValue } from './core/random'
 import { mulberry32, randomSeed } from './core/prng'
 import { DEFAULT_GENERATOR_ID, GENERATORS, generateScene, getGenerator } from './generators'
 import { effectInfos } from './post'
+import type { PostOptions } from './render/canvas'
 import { tilePixelSize } from './render/canvas'
 import { TopBar } from './ui/TopBar'
 import { ControlPanel } from './ui/ControlPanel'
@@ -36,6 +37,11 @@ export default function App() {
   const generator = getGenerator(pattern.generator) ?? GENERATORS[0]
   const scene = useMemo(() => generateScene(pattern), [pattern])
   const tilePx = tilePixelSize(scene, scale)
+  // 참조가 그대로여야 Preview의 그리기 효과가 매 렌더마다 다시 돌지 않는다
+  const post: PostOptions = useMemo(
+    () => ({ effects: pattern.effects, seed: pattern.seed, palette: pattern.palette }),
+    [pattern.effects, pattern.seed, pattern.palette],
+  )
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -134,7 +140,15 @@ export default function App() {
             onChange={(palette, locks) => setPattern((p) => ({ ...p, palette, locks }))}
           />
         </ControlPanel>
-        <Preview scene={scene} view={view} scale={scale} onViewChange={setView} onScaleChange={setScale} theme={theme} />
+        <Preview
+          scene={scene}
+          view={view}
+          scale={scale}
+          onViewChange={setView}
+          onScaleChange={setScale}
+          theme={theme}
+          post={post}
+        />
       </div>
       <ExportDialog
         open={exportOpen}
@@ -142,6 +156,7 @@ export default function App() {
         generator={pattern.generator}
         seed={pattern.seed}
         previewScale={scale}
+        post={post}
         onClose={() => setExportOpen(false)}
       />
     </div>

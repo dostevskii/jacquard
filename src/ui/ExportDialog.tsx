@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { Scene } from '../core/scene'
+import type { PostOptions } from '../render/canvas'
 import type { ExportFormat, ExportMode, ExportSettings } from '../render/export'
 import { MAX_DIM, SIZE_PRESETS, clampTileScale, exceedsLimit, exportImage, outputSize } from '../render/export'
 
@@ -9,10 +10,11 @@ interface Props {
   generator: string
   seed: number
   previewScale: number
+  post: PostOptions
   onClose(): void
 }
 
-export function ExportDialog({ open, scene, generator, seed, previewScale, onClose }: Props) {
+export function ExportDialog({ open, scene, generator, seed, previewScale, post, onClose }: Props) {
   const [format, setFormat] = useState<ExportFormat>('png')
   const [mode, setMode] = useState<ExportMode>('tile')
   const [scale, setScale] = useState(2)
@@ -34,7 +36,7 @@ export function ExportDialog({ open, scene, generator, seed, previewScale, onClo
     setBusy(true)
     setError(null)
     try {
-      await exportImage(scene, generator, seed, settings)
+      await exportImage(scene, generator, seed, settings, post)
       onClose()
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e))

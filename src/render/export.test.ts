@@ -53,4 +53,9 @@ describe('renderForExport (node: DOM 없음)', () => {
       renderForExport(scene, { format: 'png', mode: 'canvas', scale: 1, width: MAX_DIM + 1, height: 100 }),
     ).toThrow(/8192/)
   })
+  it('renderForExport still refuses oversized output when post options are given', () => {
+    expect(() =>
+      renderForExport(scene, { format: 'png', mode: 'tile', scale: 100, width: 0, height: 0 }, { effects: {}, seed: 1, palette: [] }),
+    ).toThrow(/8192/)
+  })
 })

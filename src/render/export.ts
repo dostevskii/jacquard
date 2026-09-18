@@ -1,5 +1,5 @@
 import type { Scene } from '../core/scene'
-import type { TilePx } from './canvas'
+import type { PostOptions, TilePx } from './canvas'
 import { renderFill, renderTile, tilePixelSize } from './canvas'
 
 export type ExportFormat = 'png' | 'jpg'
@@ -48,7 +48,7 @@ export function mimeOf(format: ExportFormat): string {
 }
 
 /** 설정대로 오프스크린 캔버스에 렌더한다. 크기 상한을 넘으면 DOM을 만들기 전에 throw */
-export function renderForExport(scene: Scene, settings: ExportSettings): HTMLCanvasElement {
+export function renderForExport(scene: Scene, settings: ExportSettings, post?: PostOptions): HTMLCanvasElement {
   const size = outputSize(scene, settings)
   if (exceedsLimit(size)) throw new Error(`Output size ${size.w} × ${size.h} exceeds the ${MAX_DIM}px limit`)
   const canvas = document.createElement('canvas')
@@ -56,9 +56,11 @@ export function renderForExport(scene: Scene, settings: ExportSettings): HTMLCan
   canvas.height = size.h
   const ctx = canvas.getContext('2d')
   if (!ctx) throw new Error('2D canvas context is unavailable')
-  if (settings.mode === 'tile') renderTile(scene, size, ctx)
+  if (settings.mode === 'tile') renderTile(scene, size, ctx, post)
   // renderFill이 false면 빈 캔버스가 그대로 인코딩되므로, 대화상자 오류 줄에 드러나도록 throw한다
-  else if (!renderFill(scene, tilePixelSize(scene, clampTileScale(scene, settings.scale)), ctx, size.w, size.h))
+  else if (
+    !renderFill(scene, tilePixelSize(scene, clampTileScale(scene, settings.scale)), ctx, size.w, size.h, { x: 0, y: 0 }, post)
+  )
     throw new Error('Tile rendering failed')
   return canvas
 }
@@ -80,8 +82,14 @@ export function downloadBlob(blob: Blob, filename: string): void {
   setTimeout(() => URL.revokeObjectURL(url), 1000)
 }
 
-export async function exportImage(scene: Scene, generator: string, seed: number, settings: ExportSettings): Promise<void> {
-  const canvas = renderForExport(scene, settings)
+export async function exportImage(
+  scene: Scene,
+  generator: string,
+  seed: number,
+  settings: ExportSettings,
+  post?: PostOptions,
+): Promise<void> {
+  const canvas = renderForExport(scene, settings, post)
   const blob = await canvasToBlob(canvas, settings.format)
   downloadBlob(blob, exportFilename(generator, seed, settings.format))
 }

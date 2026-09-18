@@ -1,6 +1,15 @@
 import type { Paint, Scene } from '../core/scene'
+import type { EffectsState } from '../core/state'
+import { applyEffects, hasEnabledEffects } from '../post'
 
 export interface TilePx { w: number; h: number }
+
+/** 타일 1장에 적용할 후처리 설정. 없거나 켜진 효과가 없으면 픽셀 왕복을 건너뛴다 */
+export interface PostOptions {
+  effects: EffectsState
+  seed: number
+  palette: string[]
+}
 
 export function tilePixelSize(scene: Scene, scale: number): TilePx {
   return {
@@ -17,7 +26,7 @@ function makePaint(ctx: CanvasRenderingContext2D, paint: Paint, sx: number, sy: 
 }
 
 /** 타일 1장을 (0,0)부터 tilePx 크기로 그린다. 배율은 축별로 정확히 tilePx / scene 크기 */
-export function renderTile(scene: Scene, tilePx: TilePx, ctx: CanvasRenderingContext2D): void {
+export function renderTile(scene: Scene, tilePx: TilePx, ctx: CanvasRenderingContext2D, post?: PostOptions): void {
   const sx = tilePx.w / scene.width
   const sy = tilePx.h / scene.height
   ctx.save()
@@ -53,6 +62,12 @@ export function renderTile(scene: Scene, tilePx: TilePx, ctx: CanvasRenderingCon
     }
   }
   ctx.restore()
+  // 효과는 타일이 반복되기 전 한 장에만 적용한다 — 미리보기와 두 내보내기 모드가 같은 픽셀을 낸다
+  if (post && hasEnabledEffects(post.effects)) {
+    const img = ctx.getImageData(0, 0, tilePx.w, tilePx.h)
+    applyEffects(img, post.effects, { pxPerUnit: tilePx.w / scene.width, seed: post.seed, palette: post.palette })
+    ctx.putImageData(img, 0, 0)
+  }
 }
 
 /**
@@ -66,13 +81,14 @@ export function renderFill(
   w: number,
   h: number,
   origin: { x: number; y: number } = { x: 0, y: 0 },
+  post?: PostOptions,
 ): boolean {
   const tile = document.createElement('canvas')
   tile.width = tilePx.w
   tile.height = tilePx.h
   const tctx = tile.getContext('2d')
   if (!tctx) return false
-  renderTile(scene, tilePx, tctx)
+  renderTile(scene, tilePx, tctx, post)
   const pattern = ctx.createPattern(tile, 'repeat')
   if (!pattern) return false
   ctx.save()
