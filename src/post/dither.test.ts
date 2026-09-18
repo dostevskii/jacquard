@@ -31,4 +31,13 @@ describe('dither', () => {
     dither.apply(img, { enabled: true, levels: 2, matrix: '4' }, CTX)
     for (let y = 0; y < 8; y++) for (let x = 0; x < 16; x++) expect(px(img, x, y)).toEqual(px(img, x % 4, y % 4))
   })
+  it('scales the matrix cell with pxPerUnit', () => {
+    const img = makeImage(16, 16, [100, 100, 100])
+    dither.apply(img, { enabled: true, levels: 2, matrix: '4' }, { ...CTX, pxPerUnit: 2 })
+    // 한 칸이 2×2 px, 주기는 8 px
+    for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+      expect(px(img, x, y)).toEqual(px(img, x % 8, y % 8))
+      expect(px(img, x, y)).toEqual(px(img, x - (x % 2), y - (y % 2)))
+    }
+  })
 })
