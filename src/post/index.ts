@@ -5,10 +5,11 @@ import { pixelate } from './pixelate'
 import { blur } from './blur'
 import { posterize } from './posterize'
 import { dither } from './dither'
+import { halftone } from './halftone'
 import { grain } from './grain'
 
-// Task 2~4에서 import를 추가하며 이 순서로 채운다: pixelate, blur, posterize, dither, halftone, grain
-export const EFFECTS: EffectDef[] = [pixelate, blur, posterize, dither, grain]
+// 적용 순서는 고정이다: 해상도를 줄이는 효과 → 색 단순화 → 망점 → 마지막에 결(grain)
+export const EFFECTS: EffectDef[] = [pixelate, blur, posterize, dither, halftone, grain]
 
 export function defaultEffects(defs: EffectDef[] = EFFECTS): EffectsState {
   const out: EffectsState = {}
