@@ -8,6 +8,7 @@ import { clampSwatchLocks, clearParamLocks, emptyLocks, lockParam, toggleParamLo
 import { randomizeAll, randomParamValue } from './core/random'
 import { mulberry32, randomSeed } from './core/prng'
 import { DEFAULT_GENERATOR_ID, GENERATORS, generateScene, getGenerator } from './generators'
+import { effectInfos } from './post'
 import { tilePixelSize } from './render/canvas'
 import { TopBar } from './ui/TopBar'
 import { ControlPanel } from './ui/ControlPanel'
@@ -25,7 +26,7 @@ const resolve = (id: string) => {
 
 export default function App() {
   const [pattern, setPattern] = useState<PatternState>(() =>
-    decodeState(window.location.hash, resolve, { generator: DEFAULT_GENERATOR_ID, palette: DEFAULT_PALETTE }),
+    decodeState(window.location.hash, resolve, { generator: DEFAULT_GENERATOR_ID, palette: DEFAULT_PALETTE, effectDefs: effectInfos() }),
   )
   const [view, setView] = useState<ViewMode>('fill')
   const [scale, setScale] = useState(1)

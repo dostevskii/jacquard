@@ -6,12 +6,15 @@ import { MAX_SEED } from './prng'
 import type { LockState } from './locks'
 import { emptyLocks, normalizeLocks } from './locks'
 
+export type EffectsState = Record<string, Params>
+
 export interface PatternState {
   generator: string
   seed: number
   params: Params
   palette: string[]
   locks: LockState
+  effects: EffectsState
 }
 
 export interface GeneratorInfo {
@@ -20,9 +23,15 @@ export interface GeneratorInfo {
 }
 export type ResolveGenerator = (id: string) => GeneratorInfo | undefined
 
+export interface EffectInfo {
+  id: string
+  params: ParamDef[]
+}
+
 export interface StateDefaults {
   generator: string
   palette: string[]
+  effectDefs: EffectInfo[]
 }
 
 export const DEFAULT_SEED = 1
@@ -59,6 +68,18 @@ export function normalizePalette(input: unknown, minColors: number, fallback: st
   return ensurePaletteLength(base, minColors)
 }
 
+/** 효과별 매개변수를 정의에 맞춰 정리한다. 없거나 깨진 값은 기본값, 미지의 id는 버린다 */
+export function normalizeEffects(input: unknown, effectDefs: EffectInfo[]): EffectsState {
+  const src = typeof input === 'object' && input !== null && !Array.isArray(input) ? (input as Record<string, unknown>) : {}
+  const out: EffectsState = {}
+  for (const def of effectDefs) {
+    const raw = src[def.id]
+    const rawObj = typeof raw === 'object' && raw !== null && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {}
+    out[def.id] = clampParams(def.params, rawObj)
+  }
+  return out
+}
+
 export function decodeState(hash: string, resolve: ResolveGenerator, defaults: StateDefaults): PatternState {
   const defaultInfo = resolve(defaults.generator)
   if (!defaultInfo) throw new Error(`Unknown default generator: ${defaults.generator}`)
@@ -69,6 +90,7 @@ export function decodeState(hash: string, resolve: ResolveGenerator, defaults: S
     // slice로 복사해 App 상태가 PRESETS의 배열을 그대로 참조하지 않게 한다
     palette: ensurePaletteLength(defaults.palette.slice(), defaultInfo.minColors),
     locks: emptyLocks(),
+    effects: normalizeEffects(undefined, defaults.effectDefs),
   }
   const raw = hash.replace(/^#/, '')
   if (!raw) return base
@@ -98,5 +120,6 @@ export function decodeState(hash: string, resolve: ResolveGenerator, defaults: S
     params: clampParams(info.params, rawParams),
     palette,
     locks: normalizeLocks(obj.locks, info.params.map((d) => d.key), palette.length),
+    effects: normalizeEffects(obj.effects, defaults.effectDefs),
   }
 }

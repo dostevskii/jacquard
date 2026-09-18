@@ -38,7 +38,7 @@ describe('registry', () => {
     for (const g of GENERATORS) expect(CASES.some((c) => c.id === g.id)).toBe(true)
   })
   it('generateScene pads a short palette and clamps params', () => {
-    const scene = generateScene({ generator: DEFAULT_GENERATOR_ID, seed: 3, params: { cell: 9999 }, palette: ['#000000', '#ffffff'], locks: emptyLocks() })
+    const scene = generateScene({ generator: DEFAULT_GENERATOR_ID, seed: 3, params: { cell: 9999 }, palette: ['#000000', '#ffffff'], locks: emptyLocks(), effects: {} })
     expect(scene.shapes.length).toBeGreaterThan(0)
   })
 })

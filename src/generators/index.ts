@@ -16,7 +16,7 @@ import { triangles } from './triangles'
 // 2부에서 생성기를 추가할 때 import와 이 배열에 한 줄씩 추가한다
 export const GENERATORS: GeneratorDef[] = [stripes, plaid, zigzag, motif, rings, gradientBars, isoCubes, triangles]
 
-export const DEFAULT_GENERATOR_ID = 'stripes'
+export const DEFAULT_GENERATOR_ID = 'zigzag'
 
 export function getGenerator(id: string): GeneratorDef | undefined {
   return GENERATORS.find((g) => g.id === id)

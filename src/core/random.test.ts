@@ -85,7 +85,7 @@ describe('randomSwatch / randomizePalette', () => {
 })
 
 describe('randomizeAll', () => {
-  const state: PatternState = { generator: 'g', seed: 42, params: { cell: 16, offset: 0.5, mode: 'a', flag: false }, palette: PALETTE, locks: { seed: true, params: ['offset'], palette: [1] } }
+  const state: PatternState = { generator: 'g', seed: 42, params: { cell: 16, offset: 0.5, mode: 'a', flag: false }, palette: PALETTE, locks: { seed: true, params: ['offset'], palette: [1] }, effects: {} }
   it('respects every lock and leaves generator and locks unchanged', () => {
     const out = randomizeAll(state, DEFS, mulberry32(11))
     expect(out.seed).toBe(42)
