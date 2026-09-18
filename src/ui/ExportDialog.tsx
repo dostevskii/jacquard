@@ -35,6 +35,8 @@ export function ExportDialog({ open, scene, generator, seed, previewScale, post,
   const run = async () => {
     setBusy(true)
     setError(null)
+    // "Exporting…"가 화면에 그려진 뒤에 동기 렌더(효과 체인 포함)를 시작한다
+    await new Promise<void>((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)))
     try {
       await exportImage(scene, generator, seed, settings, post)
       onClose()

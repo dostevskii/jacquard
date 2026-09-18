@@ -94,6 +94,8 @@ describe('randomizeAll', () => {
     expect(out.generator).toBe('g')
     expect(out.locks).toEqual(state.locks)
     expect(out.palette).toHaveLength(4)
+    // 효과는 손대지 않고 그대로 넘어간다
+    expect(out.effects).toBe(state.effects)
   })
   it('changes the seed when it is not locked', () => {
     const out = randomizeAll({ ...state, locks: { seed: false, params: [], palette: [] } }, DEFS, mulberry32(11))

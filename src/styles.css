@@ -170,6 +170,6 @@ body { background: var(--bg); color: var(--text); }
 .effect { margin-bottom: 6px; }
 .effect-head { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 4px 0; }
 .effect-head input { margin: 0; }
-.effect.on .effect-head span { color: var(--text); }
 .effect-head span { color: var(--muted); }
+.effect.on .effect-head span { color: var(--text); }
 .effect-body { margin: 2px 0 6px 6px; padding-left: 12px; border-left: 2px solid var(--border); }

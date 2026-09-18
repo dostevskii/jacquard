@@ -21,6 +21,7 @@ describe('post registry', () => {
     expect(defaultEffects(DEFS)).toEqual({ a: { enabled: false, amount: 3 }, b: { enabled: false, amount: 3 }, c: { enabled: false, amount: 3 } })
     expect(effectInfos(DEFS).map((e) => e.id)).toEqual(['a', 'b', 'c'])
     for (const e of EFFECTS) expect(e.params[0]).toEqual(enabledParam())
+    expect(EFFECTS.map((e) => e.id)).toEqual(['pixelate', 'blur', 'posterize', 'dither', 'halftone', 'grain'])
   })
   it('hasEnabledEffects only when some effect is enabled', () => {
     const e = defaultEffects(DEFS)

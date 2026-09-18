@@ -36,7 +36,12 @@ export default function App() {
   const [theme, setTheme] = useState<Theme>(() => loadTheme(browserStorage()))
 
   const generator = getGenerator(pattern.generator) ?? GENERATORS[0]
-  const scene = useMemo(() => generateScene(pattern), [pattern])
+  const { generator: generatorId, seed, params, palette } = pattern
+  // 효과·잠금은 기하에 영향이 없으므로 의존성에서 제외한다
+  const scene = useMemo(
+    () => generateScene({ generator: generatorId, seed, params, palette, locks: emptyLocks(), effects: {} }),
+    [generatorId, seed, params, palette],
+  )
   const tilePx = tilePixelSize(scene, scale)
   // 참조가 그대로여야 Preview의 그리기 효과가 매 렌더마다 다시 돌지 않는다
   const post: PostOptions = useMemo(
