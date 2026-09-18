@@ -34,7 +34,9 @@ hands someone else the exact pattern you are looking at. And because the generat
 a small intermediate scene of rectangles, polygons and linear gradients, the tile you see on screen
 is the tile that gets exported. The six post-processing effects follow the same rule: they are
 applied to the single tile, before it is repeated, with every size measured in tile units — so the
-export matches the preview at any scale and the repeat stays seamless.
+export matches the preview and the repeat stays seamless. Two exceptions are listed under Known
+limitations: blur stops softening at a 64 px radius, and the preview caps the size of the tile it
+runs the effects on.
 
 ## Screenshots
 
@@ -265,12 +267,17 @@ npm run deploy     # build, then wrangler pages deploy dist --project-name=jacqu
 - **The effects are raster-only.** They rewrite the tile's pixels, so they live outside the Scene
   IR. If an SVG writer is ever added, only blur and grain have an SVG filter that could stand in
   for them; pixelate, posterize, dither and halftone would have no equivalent
-- **Ordered dithering only.** Dither uses a Bayer threshold matrix (2 × 2, 4 × 4 or 8 × 8). There
-  is no error diffusion, so no Floyd–Steinberg look
+- **Ordered dithering only.** Dither uses a Bayer threshold matrix (2 × 2, 4 × 4 or 8 × 8) sized in
+  tile units — one cell is one unit, rounded to whole pixels at the current scale. There is no
+  error diffusion, so no Floyd–Steinberg look
 - **Blur is capped at a 64 px radius.** The radius is in tile units and multiplied by the current
   px-per-unit, so at a high scale it stops getting softer once it hits that ceiling
-- **The pixelate and halftone grids are anchored at the tile origin.** A cell size that does not
-  divide the tile evenly leaves a clipped row and column at the far edges, so prefer sizes that do
+- **With effects on, the preview renders the tile at no more than about 4 megapixels** and scales
+  that tile up on screen, so a large tile at a high preview scale looks blockier than it will print.
+  The zoom and the repeat period are unchanged, and exports are not affected
+- **The pixelate, dither and halftone grids are anchored at the tile origin.** A cell size that does
+  not divide the tile evenly leaves a clipped row and column at the far edges, so prefer sizes that
+  do
 - **No undo/redo.** Every edit applies at once, and the hash is rewritten in place with
   `history.replaceState`, so browser Back does not step through your changes either
 - **Desktop layout only.** The app is laid out at a minimum width of 1024 px, with no mobile
@@ -311,7 +318,9 @@ PNG·JPG로 내려받습니다.
 그대로 넘길 수 있습니다. 또한 생성기는 사각형·다각형·선형 그라데이션만으로 이루어진 작은
 중간 표현(Scene)만 내놓기 때문에, 화면에서 본 타일이 그대로 내보내집니다. 후처리 효과 6종도
 같은 원칙을 따릅니다. 타일을 반복하기 전에 타일 한 장에만 적용하고 크기는 모두 타일 단위로
-재므로, 어떤 배율에서도 내보낸 결과가 미리보기와 같고 이음새도 그대로 유지됩니다.
+재므로, 내보낸 결과가 미리보기와 같고 이음새도 그대로 유지됩니다. 예외 두 가지는 「알려진 제한」에
+적어 두었습니다. 블러는 반지름 64px에서 더 부드러워지지 않고, 미리보기는 효과를 적용하는 타일
+크기에 상한을 둡니다.
 
 ## 스크린샷
 
@@ -531,11 +540,15 @@ npm run deploy     # 빌드 후 wrangler pages deploy dist --project-name=jacqua
 - **효과는 래스터 전용입니다.** 타일의 픽셀을 고쳐 쓰는 방식이라 Scene IR 밖에 있습니다. 나중에
   SVG 출력기를 붙이더라도 블러와 그레인만 SVG 필터로 대신할 수 있고, 픽셀화·포스터라이즈·디더·
   하프톤에는 대응하는 표현이 없습니다
-- **순서 디더링만 있습니다.** 디더는 Bayer 임계 행렬(2 × 2, 4 × 4, 8 × 8)을 씁니다. 오차 확산이
-  없으므로 Floyd–Steinberg 특유의 질감은 나오지 않습니다
+- **순서 디더링만 있습니다.** 디더는 Bayer 임계 행렬(2 × 2, 4 × 4, 8 × 8)을 쓰고, 행렬 크기는 타일
+  단위입니다. 한 칸이 1 unit이고 현재 배율에서 정수 px로 반올림됩니다. 오차 확산이 없으므로
+  Floyd–Steinberg 특유의 질감은 나오지 않습니다
 - **블러 반지름은 64px이 상한입니다.** 반지름은 타일 단위라 현재 unit당 px을 곱해 쓰는데, 배율이
   높으면 이 상한에 걸려 그 이상 부드러워지지 않습니다
-- **픽셀화와 하프톤 격자는 타일 원점을 기준으로 잡힙니다.** 타일 크기로 나누어떨어지지 않는 셀
+- **효과가 켜져 있으면 미리보기는 타일을 약 4메가픽셀까지만 그립니다.** 그 타일을 화면에서 확대해
+  보여 주므로, 큰 타일을 높은 배율로 보면 실제 출력보다 거칠게 보입니다. 화면 배율과 반복 주기는
+  그대로이고, 내보내기는 이 상한의 영향을 받지 않습니다
+- **픽셀화·디더·하프톤 격자는 타일 원점을 기준으로 잡힙니다.** 타일 크기로 나누어떨어지지 않는 셀
   크기를 쓰면 끝쪽 한 행과 한 열이 잘리므로, 약수가 되는 크기를 권합니다
 - **실행 취소/다시 실행이 없습니다.** 모든 편집이 즉시 반영되고, 해시는
   `history.replaceState`로 제자리에서 갱신되므로 브라우저 뒤로 가기로도 되돌릴 수 없습니다

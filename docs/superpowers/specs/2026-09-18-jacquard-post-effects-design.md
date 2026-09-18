@@ -107,11 +107,11 @@ export function normalizeEffects(input: unknown, effectDefs: EffectInfo[]): Effe
 |---|---|---|---|---|
 | enabled | toggle | | false | |
 | levels | range | 2..8 | 2 | 채널당 단계 수 |
-| matrix | select | 2 / 4 / 8 | 4 | Bayer 행렬 크기(px) |
+| matrix | select | 2 / 4 / 8 | 4 | Bayer 행렬 크기(unit) — 한 칸 = round(pxPerUnit) px |
 
-- Bayer 행렬: `M1 = [[0]]`, `M2n = [[4M, 4M+2], [4M+3, 4M+1]]`. 임계 `t = (M[y mod m][x mod m] + 0.5) / m² − 0.5`.
+- Bayer 행렬: `M1 = [[0]]`, `M2n = [[4M, 4M+2], [4M+3, 4M+1]]`. 한 칸 크기 `cell = max(1, round(pxPerUnit))` px, 임계 `t = (M[⌊y/cell⌋ mod m][⌊x/cell⌋ mod m] + 0.5) / m² − 0.5`.
 - 채널마다 `q = v / 255 × (L−1)`, `out = clamp(round(q + t), 0, L−1) / (L−1) × 255`.
-- 행렬은 타일 원점에 정렬된다. 타일 크기가 m의 배수면 완전 seamless, 아니면 경계에서 행렬 위상만 바뀐다(값 자체는 단계 집합 안).
+- 행렬은 타일 원점에 정렬된다. 타일 크기가 m unit의 배수면 완전 seamless, 아니면 경계에서 행렬 위상만 바뀐다(값 자체는 단계 집합 안).
 
 ### 4.6 Halftone — `post/halftone.ts`
 
@@ -154,6 +154,7 @@ export async function exportImage(scene, generator, seed, settings, post?: PostO
 - `renderTile`은 도형을 다 그린 뒤 `post`가 있고 `hasEnabledEffects(post.effects)`이면 `getImageData(0,0,w,h)` → `applyEffects(img, post.effects, { pxPerUnit: tilePx.w / scene.width, seed: post.seed, palette: post.palette })` → `putImageData(img, 0, 0)`.
 - App은 `post = { effects: pattern.effects, seed: pattern.seed, palette: pattern.palette }`를 `Preview`와 `ExportDialog`에 넘긴다. 미리보기의 rAF 합치기는 그대로다.
 - 처리 시간: 미리보기 타일(수백 px)은 수 ms. 8192px 타일에 블러 64px는 수 초가 걸릴 수 있다. 내보내기 버튼의 `busy` 상태가 이미 있으므로 추가 UI는 두지 않는다.
+- 미리보기 상한: 효과가 하나라도 켜져 있으면 타일을 `PREVIEW_EFFECT_PX_LIMIT`(4 MP) 이하로 그리고, 모자란 배율만큼 CTM을 확대(최근접 보간)해 화면 배율은 그대로 둔다. 효과가 모두 꺼져 있으면 배율 계산이 v1.1과 같아 픽셀도 같다. 내보내기는 이 상한의 영향을 받지 않는다.
 
 ## 7. UI
 
