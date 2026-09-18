@@ -134,7 +134,7 @@ export function resample(img: RasterImage, map: (x: number, y: number) => readon
 
 ### 5.2 글리프 문법
 
-글리프 k(행 우선 번호)는 하위 시드 `sub_k = (seed ^ imul(k + 1, 0x9E3779B1)) >>> 0`의 `mulberry32(sub_k)`로 그린다. 같은 시드·매개변수면 항상 같은 타일이고, Randomize(시드)로 전체가 바뀐다.
+생성기는 `seed`가 아니라 `rng`를 받으므로, 먼저 `rng.int(0, 0x7fffffff)`로 글리프 수만큼 하위 시드를 뽑고 글리프 k(행 우선 번호)는 `mulberry32(sub_k)`로 그린다. 같은 시드·매개변수면 항상 같은 타일이고, Randomize(시드)로 전체가 바뀐다.
 
 1. 원시 도형 수: 1개(p = 0.6) 또는 2개. 계열 필터: `lines` = bands·bars·loop, `dots` = dots·scatter·center, `checker` = checker·center, `wave` = step·bands, `all` = 전부.
 2. 원시 도형(g × g 불리언 격자에 그림, 매개변수는 rng로 뽑고 density가 클수록 굵고 촘촘하게):
