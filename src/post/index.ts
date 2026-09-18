@@ -1,9 +1,11 @@
 import type { EffectInfo, EffectsState } from '../core/state'
 import { bool, defaultParams } from '../core/params'
 import type { EffectContext, EffectDef, RasterImage } from './types'
+import { blur } from './blur'
+import { grain } from './grain'
 
 // Task 2~4에서 import를 추가하며 이 순서로 채운다: pixelate, blur, posterize, dither, halftone, grain
-export const EFFECTS: EffectDef[] = []
+export const EFFECTS: EffectDef[] = [blur, grain]
 
 export function defaultEffects(defs: EffectDef[] = EFFECTS): EffectsState {
   const out: EffectsState = {}
