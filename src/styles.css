@@ -165,3 +165,11 @@ body { background: var(--bg); color: var(--text); }
 .modal .size-row .field input { width: 90px; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
 .info.error { color: var(--danger); }
+
+/* effects */
+.effect { margin-bottom: 6px; }
+.effect-head { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 4px 0; }
+.effect-head input { margin: 0; }
+.effect.on .effect-head span { color: var(--text); }
+.effect-head span { color: var(--muted); }
+.effect-body { margin: 2px 0 6px 6px; padding-left: 12px; border-left: 2px solid var(--border); }

@@ -8,29 +8,32 @@ import { DiceButton } from './DiceButton'
 interface Props {
   def: ParamDef
   value: ParamValue
-  locked: boolean
   onChange(v: ParamValue): void
-  onToggleLock(): void
   onRandomize(): void
+  /** false면 자물쇠 버튼도 잠금 표시도 없다(후처리 효과 값처럼 잠금 대상이 아닌 값) */
+  lockable?: boolean
+  locked?: boolean
+  onToggleLock?(): void
 }
 
 interface HeadProps {
   label: string
   locked: boolean
+  lockable: boolean
   onToggleLock(): void
   onRandomize(): void
   children?: ReactNode
 }
 
 /** 라벨 줄: [라벨] [spacer] [children] [주사위] [자물쇠] */
-function ControlHead({ label, locked, onToggleLock, onRandomize, children }: HeadProps) {
+function ControlHead({ label, locked, lockable, onToggleLock, onRandomize, children }: HeadProps) {
   return (
     <div className="control-head">
       <span className="control-label">{label}</span>
       <span className="spacer" />
       {children}
       <DiceButton onClick={onRandomize} title={`Randomize ${label}`} />
-      <LockButton locked={locked} onToggle={onToggleLock} label={label} />
+      {lockable ? <LockButton locked={locked} onToggle={onToggleLock} label={label} /> : null}
     </div>
   )
 }
@@ -78,9 +81,9 @@ function NumberField({ value, label, snap, onCommit }: NumberFieldProps) {
   )
 }
 
-export function ParamControl({ def, value, locked, onChange, onToggleLock, onRandomize }: Props) {
-  const cls = `control${locked ? ' locked' : ''}`
-  const head = { label: def.label, locked, onToggleLock, onRandomize }
+export function ParamControl({ def, value, locked = false, onChange, onToggleLock = () => {}, onRandomize, lockable = true }: Props) {
+  const cls = `control${lockable && locked ? ' locked' : ''}`
+  const head = { label: def.label, locked, lockable, onToggleLock, onRandomize }
   if (def.type === 'range') {
     const v = typeof value === 'number' ? value : def.default
     return (

@@ -2,18 +2,19 @@ import { useEffect, useMemo, useState } from 'react'
 import type { PatternState } from './core/state'
 import { decodeState, encodeState } from './core/state'
 import type { ParamValue } from './core/params'
-import { defaultParams } from './core/params'
+import { bool, defaultParams } from './core/params'
 import { DEFAULT_PALETTE, ensurePaletteLength } from './core/palettes'
 import { clampSwatchLocks, clearParamLocks, emptyLocks, lockParam, toggleParamLock, toggleSeedLock } from './core/locks'
 import { randomizeAll, randomParamValue } from './core/random'
 import { mulberry32, randomSeed } from './core/prng'
 import { DEFAULT_GENERATOR_ID, GENERATORS, generateScene, getGenerator } from './generators'
-import { effectInfos } from './post'
+import { EFFECTS, effectInfos } from './post'
 import type { PostOptions } from './render/canvas'
 import { tilePixelSize } from './render/canvas'
 import { TopBar } from './ui/TopBar'
 import { ControlPanel } from './ui/ControlPanel'
 import { PalettePanel } from './ui/PalettePanel'
+import { EffectsPanel } from './ui/EffectsPanel'
 import { ExportDialog } from './ui/ExportDialog'
 import { Preview } from './ui/Preview'
 import type { ViewMode } from './ui/Preview'
@@ -72,6 +73,17 @@ export default function App() {
       if (!def) return p
       return { ...p, params: { ...p.params, [key]: randomParamValue(def, mulberry32(randomSeed())) } }
     })
+
+  // 후처리 값: 잠금·Randomize와 무관하므로 locks를 건드리지 않는다
+  const setEffectParam = (id: string, key: string, value: ParamValue) =>
+    setPattern((p) => ({ ...p, effects: { ...p.effects, [id]: { ...p.effects[id], [key]: value } } }))
+  const randomizeEffectParam = (id: string, key: string) =>
+    setPattern((p) => {
+      const def = EFFECTS.find((e) => e.id === id)?.params.find((d) => d.key === key)
+      if (!def) return p
+      return { ...p, effects: { ...p.effects, [id]: { ...p.effects[id], [key]: randomParamValue(def, mulberry32(randomSeed())) } } }
+    })
+  const effectsOn = EFFECTS.filter((e) => bool(pattern.effects[e.id] ?? {}, 'enabled')).length
 
   const onToggleParamLock = (key: string) => setPattern((p) => ({ ...p, locks: toggleParamLock(p.locks, key) }))
 
@@ -132,6 +144,7 @@ export default function App() {
           onRandomizeParam={randomizeParam}
           scene={scene}
           tilePx={tilePx}
+          effectsOn={effectsOn}
         >
           <PalettePanel
             palette={pattern.palette}
@@ -139,6 +152,7 @@ export default function App() {
             minColors={generator.minColors}
             onChange={(palette, locks) => setPattern((p) => ({ ...p, palette, locks }))}
           />
+          <EffectsPanel effects={pattern.effects} onParamChange={setEffectParam} onRandomizeParam={randomizeEffectParam} />
         </ControlPanel>
         <Preview
           scene={scene}

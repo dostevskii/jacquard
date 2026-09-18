@@ -14,10 +14,11 @@ interface Props {
   onRandomizeParam(key: string): void
   scene: Scene
   tilePx: TilePx
+  effectsOn: number
   children?: ReactNode
 }
 
-export function ControlPanel({ generator, params, lockedKeys, onParamChange, onToggleLock, onRandomizeParam, scene, tilePx, children }: Props) {
+export function ControlPanel({ generator, params, lockedKeys, onParamChange, onToggleLock, onRandomizeParam, scene, tilePx, effectsOn, children }: Props) {
   return (
     <aside className="panel">
       <section className="panel-section">
@@ -40,6 +41,7 @@ export function ControlPanel({ generator, params, lockedKeys, onParamChange, onT
         <div className="info">Tile: {Math.round(scene.width)} × {Math.round(scene.height)} units</div>
         <div className="info">At current scale: {tilePx.w} × {tilePx.h} px</div>
         <div className="info">Shapes: {scene.shapes.length}</div>
+        <div className="info">Effects: {effectsOn} on</div>
       </section>
     </aside>
   )
