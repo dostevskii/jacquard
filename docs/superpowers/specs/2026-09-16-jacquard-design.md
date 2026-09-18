@@ -471,6 +471,7 @@ export function mix(a: string, b: string, t?: number): string; // RGB 선형 혼
 - 배포는 7단계에서 wrangler 로그인 상태를 확인한 뒤 실행하고, 배포 URL을 README와 About에 기록한다.
 - 프로덕션 URL: https://jacquard-aou.pages.dev (2026-09-16 배포)
 - v1.1 배포: 2026-09-17 (Randomize·잠금·라이트 테마)
+- v1.2 배포: 2026-09-18 (후처리 6종, 기본 생성기 Zigzag)
 
 ## 10. 결정 기록
 
